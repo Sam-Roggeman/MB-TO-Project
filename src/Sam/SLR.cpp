@@ -176,6 +176,7 @@ SLR::SLR(const CFG &G) {
         aug_prods.emplace_back(aug_prod);
     }
     initializeStates();
+    TableFilling();
 
 }
 
@@ -306,3 +307,222 @@ const state * SLR::getEqualState(const state &state1) {
     }
     return nullptr;
 }
+
+void SLR::TableFilling() {
+    Table t = Table();
+
+    for(auto& variable:V){
+        if(variable != "S"){
+            std::pair<std::string,Row> pair = std::make_pair(variable,Row());
+            pair.second = {};
+            t.AddGoTo(pair);
+        }
+    }
+
+
+
+    for(auto& terminals:T){
+        std::pair<std::string,Row> pair = std::make_pair(terminals,Row());
+        pair.second = {};
+        t.AddAction(pair);
+    }
+    std::pair<std::string,Row> pair = std::make_pair("$",Row());
+    pair.second = {};
+    t.AddAction(pair);
+
+    Follows();
+    std::vector<std::pair<std::string, Row>> Go = {};
+    for(auto& Goto :t.GetGoTo()){
+        Row list = {};
+
+        for(auto& state:this->states){
+            bool input = false;
+
+            for(auto& edge:state.second.GetEdge()){
+                if(edge.GetInput() == Goto.first){
+                    input = true;
+                    list.push_back(edge.GetTo()->getName());
+                    break;
+                }
+            }
+            if(!input){
+                list.emplace_back("");
+            }
+        }
+
+        std::pair<std::string,Row> vec = Goto;
+        vec.second = list;
+        Go.push_back(vec);
+    }
+
+    t.SetGoTo(Go);
+
+    std::vector<std::pair<std::string,Row>> act = {};
+    for(auto& actions:t.GetAction()){
+        Row list = {};
+        for(auto& s:this->states){
+            ActionCheck(list,actions,s.first,s.second);
+        }
+        std::pair<std::string,Row> vec = actions;
+        vec.second = list;
+        act.push_back(vec);
+    }
+
+    t.SetAction(act);
+
+    SetTable(t);
+}
+void SLR::SetTable(const Table& t) {table = t;}
+
+void SLR::Follows() {
+
+    std::vector<std::string> Slist = {};
+    for(auto& produc:P){
+        if(std::find(produc.to.begin(),produc.to.end(),"S") != produc.to.end() && produc.to.size() == 1
+                && std::find(Slist.begin(),Slist.end(),"$") == Slist.end()){
+            Slist.emplace_back("$");
+        }
+
+        else if(std::find(produc.to.begin(),produc.to.end(),"S") != produc.to.end() && produc.to.size() > 1
+                 && produc.to[produc.to.size()-1 ] != "S"){
+            auto S = std::find(produc.to.begin(),produc.to.end(),"S");
+            S += 1;
+            if(std::find(Slist.begin(),Slist.end(),*S) == Slist.end()){
+                Slist.push_back(*S);
+            }
+        }
+    }
+
+    if(Slist.empty()){
+        Slist.emplace_back("$");
+    }
+
+    follow["S"] = Slist;
+
+    for(auto& variables:V){
+        std::vector<std::string> list= {};
+        for(auto& F:follow){
+            if(variables != "S"){
+
+                ProductionLoop(variables,F,list);
+            }
+        }
+        if(variables != "S"){
+            auto pair = std::make_pair(variables,list);
+            follow[variables] = list;
+        }
+    }
+
+
+    for(auto& var:follow){
+            std::vector<std::string> list= var.second;
+            for(auto& F:follow){
+                    if(var.first != "S"){
+                        ProductionLoop(var.first,F,list);
+                    }
+            }
+            if(var.first != "S"){
+                var.second = list;
+            }
+    }
+
+}
+void SLR::ProductionLoop(std::basic_string<char> variable,
+                         std::pair<const std::basic_string<char>, std::vector<std::basic_string<char>>> check,std::vector<std::string>&list ) {
+    for(auto& produc:P){
+
+         if(produc.from == check.first &&produc.to.size() == 1 && produc.to[0] == variable){
+            for(auto& string:check.second){
+                if(std::find(list.begin(),list.end(),string) == list.end()){
+                    list.push_back(string);
+                }
+            }
+        }
+
+        else if( produc.to.size() > 1 && std::find(produc.to.begin()
+                ,produc.to.end(),variable) != produc.to.end()){
+            auto it = std::find(produc.to.begin(),produc.to.end(),variable);
+
+            if((it + 1) != produc.to.end() && std::find(V.begin(),V.end(),*(it+1)) == V.end()
+                && std::find(list.begin(),list.end(),*(it+1)) == list.end()){
+                it += 1;
+                list.push_back(*it);
+            }
+
+            else if(std::find(list.begin(),list.end(),"$") == list.end()){
+                list.emplace_back("$");
+            }
+        }
+
+        if(produc.from == check.first && produc.to.size() == 1 && produc.to[0] == variable){
+            for(auto l:check.second){
+                if(std::find(list.begin(),list.end(),l) == list.end()){
+                    list.push_back(l);
+                }
+            }
+        }
+    }
+}
+void SLR::ActionCheck(Row& row, std::pair<std::string, Row>& actions, std::basic_string<char> statename,
+                      state& s)
+{
+    bool input = false;
+    for(auto ed:s.GetEdge()){
+        if(ed.GetInput() == actions.first){
+            std::string r = "S";
+            r += ed.GetTo()->getName().back();
+            row.push_back(r);
+            input = true;
+            break;
+        }
+    }
+
+    if(!input){
+        std::pair<std::string,std::vector<std::string>> prod;
+        bool dot = false;
+        for(int i = 0; i < s.size(); i++){
+            if(s[i].to.back() == "•" && std::find(follow[s[i].from].begin(),follow[s[i].from].end(),actions.first) != follow[s[i].from].end()){
+                auto a = s[i].to;
+                a.pop_back();
+                prod = std::make_pair(s[i].from,a);
+                dot = true;
+                break;
+            }
+        }
+
+        if(!dot){
+            row.push_back("");
+        }
+
+        else{
+            for(int i = 0; i < P.size(); i++){
+                if(P[i].from == prod.first
+                        && P[i].to == prod.second
+                        && std::find(follow[P[i].from].begin(),follow[P[i].from].end(),actions.first) !=
+                               follow[P[i].from].end()){
+                   std::string r = "R";
+                   r += i;
+                   row.push_back(r);
+                   break;
+                }
+            }
+        }
+
+    }
+}
+
+Row::Row() {
+
+}
+
+void Table::SetGoTo(const std::vector<std::pair<std::string, Row>>& go_to) {GoTo = go_to;}
+
+void Table::SetAction(const std::vector<std::pair<std::string, Row>>& action) {Action = action;}
+
+std::vector<std::pair<std::string, Row>> Table::GetAction() {return Action;}
+
+std::vector<std::pair<std::string, Row>> Table::GetGoTo() {return GoTo;}
+
+void Table::AddAction(const std::pair<std::string, Row>& pair) {Action.push_back(pair);}
+
+void Table::AddGoTo(const std::pair<std::string, Row>& pair) {GoTo.push_back(pair);}

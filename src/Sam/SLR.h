@@ -37,6 +37,8 @@ class edge {
 public:
     edge(state *from, state *to, const std::string input);
     std::ostream friend &operator<<(std::ostream &os, const edge &edge) ;
+    std::string GetInput(){return input;}
+    state* GetTo(){return to;}
 };
 
 class state : public std::vector<production>{
@@ -52,17 +54,44 @@ public:
     bool operator==(const state& that) const;
     friend std::ostream& operator<<(std::ostream& os, const state& state);
     std::vector<std::string> getAllStringsAfterDot() const;
+    std::vector<edge> GetEdge(){return edges;}
 
     state();
 };
+class Row : public std::vector<std::string>{
+public:
+    Row();
 
+
+};
+class Table {
+    std::vector<std::pair<std::string,Row>> GoTo;
+    std::vector<std::pair<std::string,Row>> Action;
+
+public:
+    Table(){
+        GoTo = {};
+        Action = {};
+        }
+
+        void SetGoTo(const std::vector<std::pair<std::string,Row>> &go_to);
+        void SetAction(const std::vector<std::pair<std::string,Row>> &action);
+
+        std::vector<std::pair<std::string,Row>> GetAction();
+        std::vector<std::pair<std::string,Row>> GetGoTo();
+
+        void AddAction(const std::pair<std::string,Row> &pair);
+        void AddGoTo(const std::pair<std::string,Row> &pair);
+
+};
 class SLR {
     std::vector<std::string> V; // variables - non-terminals
     std::vector<std::string> T; // terminals
     std::vector<production> P; // base_productions
-    std::vector<production> aug_prods;
+    std::vector<production> aug_prods; //Augmented_productions
     std::map<std::string,state> states; //states
-
+    std::map<std::string,std::vector<std::string>> follow = {};
+    Table table = Table();
 
 public:
 explicit SLR(const CFG & cfg);
@@ -71,13 +100,26 @@ explicit SLR(const CFG & cfg);
 
     std::vector<production> closure(std::vector<production> &included, std::set<std::string> &found, int current_index);
 
+    void TableFilling();
+
 private:
     std::vector<production> closure(std::vector<production> &included);
+
     bool isVar(const std::string& basicString);
 
     void initializeStates();
 
     state initializeStartState();
+
+    void SetTable(const Table &t);
+
+    void Follows();
+
+    void ProductionLoop(std::basic_string<char> variable,
+                        std::pair<const std::basic_string<char>, std::vector<std::basic_string<char>>> check,std::vector<std::string> &list );
+
+    void ActionCheck(Row &row, std::pair<std::string,Row> &actions, std::basic_string<char> statename
+                     , state &s);
     void sort();
 
     /**
