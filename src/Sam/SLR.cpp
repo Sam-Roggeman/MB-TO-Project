@@ -512,6 +512,7 @@ void SLR::ActionCheck(Row& row, std::pair<std::string, Row>& actions, std::basic
 }
 void SLR::PrintTable()
 {
+    std::cout << "  |";
     for(auto &action:table.GetAction()){
         std::cout << action.first;
         if(action.first == "id"){
@@ -532,6 +533,7 @@ void SLR::PrintTable()
 
     std::cout << std::endl;
     for(int i = 0; i < states.size(); i++){
+        std::cout << i << " |";
         for(auto &action:table.GetAction()){
             std::cout << action.second[i] ;
             if(action.second[i][0] == 'R' || action.second[i][0] == 'S'){
