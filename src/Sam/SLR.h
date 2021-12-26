@@ -102,6 +102,8 @@ explicit SLR(const CFG & cfg);
 
     void TableFilling();
 
+    void PrintTable();
+
 private:
     std::vector<production> closure(std::vector<production> &included);
 
@@ -120,6 +122,8 @@ private:
 
     void ActionCheck(Row &row, std::pair<std::string,Row> &actions, std::basic_string<char> statename
                      , state &s);
+
+
     void sort();
 
     /**

@@ -7,5 +7,6 @@ int srltest(int argc, char* argv[]) {
         CFG cfg = CFG("../Inputfiles/SLR.json");
         SLR slr = SLR(cfg);
         std::cout << slr;
+        slr.PrintTable();
         return 0;
 }

@@ -501,13 +501,63 @@ void SLR::ActionCheck(Row& row, std::pair<std::string, Row>& actions, std::basic
                         && std::find(follow[P[i].from].begin(),follow[P[i].from].end(),actions.first) !=
                                follow[P[i].from].end()){
                    std::string r = "R";
-                   r += i;
+                   r += std::to_string(i);
                    row.push_back(r);
                    break;
                 }
             }
         }
 
+    }
+}
+void SLR::PrintTable()
+{
+    for(auto &action:table.GetAction()){
+        std::cout << action.first;
+        if(action.first == "id"){
+            std::cout << "| ";
+        }
+
+        else{
+            std::cout  << " | ";
+        }
+    }
+
+    for(auto &Goto:table.GetGoTo()){
+         std::cout << Goto.first ;
+         if(Goto != table.GetGoTo().back()){
+            std::cout << " | ";
+         }
+    }
+
+    std::cout << std::endl;
+    for(int i = 0; i < states.size(); i++){
+        for(auto &action:table.GetAction()){
+            std::cout << action.second[i] ;
+            if(action.second[i][0] == 'R' || action.second[i][0] == 'S'){
+                std::cout << "| " ;
+            }
+
+            else if(action.second[i] == ""){
+                std::cout << "  | ";
+            }
+
+        }
+        for(auto &Goto:table.GetGoTo()){
+            std::cout << Goto.second[i];
+            if(Goto.second[i][0] == 'i'){
+                std::cout  << "| ";
+            }
+
+            else if(Goto.second[i] == ""){
+                std::cout  << "  | ";
+            }
+
+            else{
+                std::cout  << " | ";
+            }
+        }
+            std::cout << std::endl;
     }
 }
 
