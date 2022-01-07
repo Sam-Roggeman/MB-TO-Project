@@ -1,7 +1,7 @@
 //
 // Created by Sam Roggeman on 21/12/2021.
 //
-#include "Sam/SLR.h"
+#include "SLR.h"
 
 int srltest(int argc, char* argv[])
 {

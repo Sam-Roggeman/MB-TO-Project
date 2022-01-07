@@ -5,7 +5,7 @@
 #ifndef PROGRAMMEEROPDRACHT_SLR_H
 #define PROGRAMMEEROPDRACHT_SLR_H
 
-#include "CFG.h"
+#include "Sam/CFG.h"
 #include <algorithm>
 #include <iterator> // std::next
 #include <set>
