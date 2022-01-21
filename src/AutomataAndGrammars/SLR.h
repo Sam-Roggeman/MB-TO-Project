@@ -1,11 +1,7 @@
-//
-// Created by Sam Roggeman on 19/12/2021.
-//
-
 #ifndef PROGRAMMEEROPDRACHT_SLR_H
 #define PROGRAMMEEROPDRACHT_SLR_H
 
-#include "Sam/CFG.h"
+#include "CFG.h"
 #include <algorithm>
 #include <iterator> // std::next
 #include <set>
