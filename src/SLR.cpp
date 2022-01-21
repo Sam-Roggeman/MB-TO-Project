@@ -435,7 +435,6 @@ void SLR::Follows()
                 std::vector<std::string> list = {};
                 for (auto& F : follow) {
                         if (variables != "S") {
-
                                 ProductionLoop(variables, F, list);
                         }
                 }
@@ -522,7 +521,10 @@ void SLR::ActionCheck(Row& row, std::pair<std::string, Row>& actions, std::basic
                         }
                 }
 
-                if (!dot) {
+                if(dot && s[0].from == "S" && s[0].to.back() =="•"){
+                        row.push_back("A");
+                }
+                else if (!dot) {
                         row.push_back("");
                 }
 
