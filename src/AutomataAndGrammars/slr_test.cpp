@@ -1,5 +1,5 @@
 //
-// Created by Sam Roggeman on 21/12/2021.
+// Created by AutomataAndGrammars Roggeman on 21/12/2021.
 //
 #include "SLR.h"
 

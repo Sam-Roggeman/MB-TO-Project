@@ -1,6 +1,3 @@
-//
-// Created by Sam Roggeman on 19/12/2021.
-//
 #include "SLR.h"
 
 #include <utility>
