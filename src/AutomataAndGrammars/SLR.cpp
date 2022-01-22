@@ -278,14 +278,14 @@ void SLR::initializeStates()
 
 state SLR::initializeStartState()
 {
-        production s_production{};
+
+        std::vector<production> clo{};
         for (const production& production : aug_prods) {
                 if (production.from == "S") {
-                        s_production = production;
-                        break;
+                        clo.push_back(production);
                 }
         }
-        std::vector<production> clo = {s_production};
+
         // State0
         state i{"i0", closure(clo)};
         states[i.getName()] = i;
@@ -432,6 +432,7 @@ void SLR::Follows()
                 std::vector<std::string> list = {};
                 for (auto& F : follow) {
                         if (variables != "S") {
+
                                 ProductionLoop(variables, F, list);
                         }
                 }
@@ -521,7 +522,8 @@ void SLR::ActionCheck(Row& row, std::pair<std::string, Row>& actions, std::basic
                 if(dot && s[0].from == "S" && s[0].to.back() =="•"){
                         row.push_back("A");
                 }
-                else if (!dot) {
+
+                if (!dot) {
                         row.push_back("");
                 }
 
@@ -599,6 +601,120 @@ void SLR::toDot(std::ostream& os)
         }
 
         os << "}" << std::endl;
+}
+
+bool SLR::ValidCheck( std::string& in,  std::string& head) {
+        std::string input = in;
+        std::string s = "i0";
+
+        state * staat = &states[s];
+
+        if(head == "kleur"){
+                for(auto& st:staat->GetEdge()){
+                        if(st.GetInput() == "l"){
+                                staat = st.GetTo();
+                                break;
+                        }
+                }
+        }
+
+        else{
+                for(auto& st:staat->GetEdge()){
+                        if(st.GetInput() == "n"){
+                                staat = st.GetTo();
+                                break;
+                        }
+                }
+        }
+
+        bool end = false;
+
+        for(auto& letter:in){
+                std::string l;
+                l += letter;
+                bool valid = false;
+                for(auto & st:staat->GetEdge()){
+                        if(st.GetInput() == l){
+                                staat = st.GetTo();
+                                valid = true;
+                                break;
+                        }
+                }
+                if(!valid){
+                        std::cerr << "Input not valid" << std::endl;
+                        return false;
+                }
+
+                if (l == "<"){
+                        end = true;
+                }
+        }
+
+        if(end && in.back() != '<'){
+                std::cerr << "The input is not valid" << std::endl;
+                return false;
+        }
+
+        else{
+                return true;
+        }
+}
+
+void SLR::ParseXML(std::vector<std::pair<std::string,std::string>>& values, const std::string& filename) {
+
+        std::ifstream infile(filename);
+        std::string line;
+
+        while(std::getline(infile,line)){
+
+                if (line == "<Car>" || line == "</Car>"){
+                        continue;
+                }
+
+                else{
+                        std::string value;
+                        std::string head;
+
+                        bool yes = false;
+                        bool heads = false;
+
+                        for(int i = 0; i < line.size(); i++){
+                                if(line[i] == '<' && !yes){
+                                        heads = true;
+                                }
+                                else if(line[i] == '<' && yes){
+                                        value += line[i];
+                                        break;
+                                }
+                                else if(line[i] == '>'){
+                                        yes = true;
+                                        heads = false;
+                                }
+                                else if(heads){
+                                        head += line[i];
+                                }
+                                else if(yes && line[i] != ' '){
+                                        value +=  line[i];
+                                }
+                        }
+                        auto pair = std::make_pair(head,value);
+                        values.push_back(pair);
+                }
+        }
+
+        for(auto& pair:values){
+                if(pair.first == "kleur" && pair.second.size() != 7){
+                        std::cerr << "More then 6 numbers/letters for color" << std::endl;
+                }
+        }
+
+        for(auto& pair:values){
+                if(!ValidCheck(pair.second,pair.first)){
+                        values = {};
+                        return;
+                }
+                pair.second.pop_back();
+        }
 }
 
 Row::Row() {}

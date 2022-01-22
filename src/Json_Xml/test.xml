@@ -1,0 +1,9 @@
+<Car>
+    <versnelling> 10 </versnelling>
+    <maxsnelheid> 20 </maxsnelheid>
+    <massa> 10 </massa>
+    <remkracht> 12 </remkracht>
+    <breedte> 12</breedte>
+    <lengte> 12 </lengte>
+    <kleur> 8557F4 </kleur>
+</Car>
