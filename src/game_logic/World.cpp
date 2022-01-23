@@ -7,24 +7,53 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 1}, {0.3, 0.3});
+        _player = _entity_model_creator->createDoodleModel(_camera, {0, 1}, {0.3, 0.3});
         _player->setInputMap(_user_input_map);
-//        _player->getHitbox()->setCircleHitbox(0.1);
 
         std::shared_ptr<Wall> wall1 = _entity_model_creator->createWallModel(_camera, {1, 0.5}, {0.8, 0.8});
         _walls.insert(wall1);
 
+        Vector2f new_pos = wall1->getPosition();
+        Vector2f new_direction = {0, -1};
+        std::shared_ptr<Core::Raycast> raycast = std::make_shared<Core::Raycast>(new_pos, new_direction, 0.4);
+        wall1->addRaycast(raycast);
+
 //        std::shared_ptr<Car> car1 = _entity_model_creator->createCarModel(_camera, {-1, 0.5}, {0.3, 0.3});
 //        _cars.insert(car1);
+
 }
 
 World::~World() = default;
 
-void World::update(float t, float dt)
+void World::update(double t, float dt)
 {
         // logic
-        if (!_user_input_map->custom1) {
+        if (_user_input_map->custom4) {
                 _walls.begin()->get()->rotate(45 * Stopwatch::getInstance().getPhysicsDeltaTime());
+//                float new_scale = (std::cos(t) / 2) + 1.f;
+//                _walls.begin()->get()->setScale({new_scale, new_scale});
+        }
+
+        if (_user_input_map->custom5) {
+                _walls.begin()->get()->scale({1, 0.999});
+        }
+
+        int i = 0;
+        for (auto& raycast : _player->getRaycasts()) {
+                // distance
+//                std::cout << i << " -> " << raycast->getCollisionLength() << std::endl;
+                i++;
+        }
+
+        // game speed
+        if (_user_input_map->custom1) {
+                Stopwatch::getInstance().setPhysicsSpeed(10);
+        }
+        if (_user_input_map->custom2) {
+                Stopwatch::getInstance().setPhysicsSpeed(0.1);
+        }
+        if (_user_input_map->custom3) {
+                Stopwatch::getInstance().setPhysicsSpeed(1);
         }
 
         for (auto& raycast : _player->getRaycasts()) {
@@ -40,7 +69,7 @@ void World::update(float t, float dt)
 
 std::shared_ptr<InputMap> World::getInputMap() { return _user_input_map; }
 
-void World::updateEntities(float t, float dt)
+void World::updateEntities(double t, float dt)
 {
         // player
         _player->update(t, dt);
@@ -60,9 +89,6 @@ void World::checkCollisions() {
         for (auto& wall : _walls) {
                 // player
                 bool collided = checkCollision(_player, wall);
-//                if (collided) {
-//                        _player->setHitWall(true);
-//                }
 
                 for (auto& raycast : _player->getRaycasts()) {
                         checkCollision(raycast, wall);

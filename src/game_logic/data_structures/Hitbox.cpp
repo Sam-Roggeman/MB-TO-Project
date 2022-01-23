@@ -2,9 +2,9 @@
 
 Core::Hitbox::Hitbox() : _is_passthrough(false) {}
 
-Core::Hitbox::Hitbox(const Core::Vector2f& origin) : _origin(origin) {}
+Core::Hitbox::Hitbox(const Core::Vector2f& origin) : _origin(origin), _is_passthrough(false) {}
 
-Core::Hitbox::Hitbox(const Core::Vector2f& origin, float width, float height) : _origin(origin)
+Core::Hitbox::Hitbox(const Core::Vector2f& origin, float width, float height) : _origin(origin), _is_passthrough(false)
 {
         setRectangleHitbox(width, height);
 }
@@ -36,44 +36,21 @@ void Core::Hitbox::move(const Core::Vector2f& vector)
 
 void Core::Hitbox::rotate(float angle)
 {
-        float angle_radian = angle * static_cast<float>(M_PI) / 180.f;
+        float angle_radian = CoreUtils::toRadian(angle);
+
         for (auto& point : _points) {
-                // translate point back to origin
-                point -= _origin;
-
-                // rotate point
-                Vector2f new_point = {point.x * std::cos(angle_radian) - point.y * std::sin(angle_radian),
-                                      point.x * std::sin(angle_radian) + point.y * std::cos(angle_radian)};
-
-                // translate point back to pivot point
-                point = new_point + _origin;
+                point.rotate(angle_radian, _origin);
         }
 }
 
 void Core::Hitbox::rotate(float angle, const Vector2f& pivot)
 {
-        float angle_radian = angle * static_cast<float>(M_PI) / 180.f;
+        float angle_radian = CoreUtils::toRadian(angle);
 
-        // translate point to pivot
-        _origin -= pivot;
-
-        // rotate point
-        Vector2f new_origin = {_origin.x * std::cos(angle_radian) - _origin.y * std::sin(angle_radian),
-                               _origin.x * std::sin(angle_radian) + _origin.y * std::cos(angle_radian)};
-
-        // translate point back to pivot point
-        _origin = new_origin + pivot;
+        _origin.rotate(angle_radian, pivot);
 
         for (auto& point : _points) {
-                // translate point to pivot origin
-                point -= pivot;
-
-                // rotate point
-                Vector2f new_point = {point.x * std::cos(angle_radian) - point.y * std::sin(angle_radian),
-                                      point.x * std::sin(angle_radian) + point.y * std::cos(angle_radian)};
-
-                // translate point back to pivot point
-                point = new_point + pivot;
+                point.rotate(angle_radian, pivot);
         }
 }
 

@@ -17,7 +17,7 @@ public:
         Raycast();
         Raycast(const Vector2f& origin, const Vector2f& endpoint);
         /**
-         * The direction of the raycast. Must be normalized.
+         * The _direction of the raycast must be normalized.
          */
         Raycast(const Vector2f& origin, const Vector2f& direction, float length);
 
@@ -44,6 +44,8 @@ public:
 
         float getLength() const;
         void setLength(float length);
+
+        float getCollisionLength() const;
 
         bool isActivated() const;
         void setActivated(bool activated);

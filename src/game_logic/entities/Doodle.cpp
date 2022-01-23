@@ -11,13 +11,14 @@ Core::Doodle::Doodle(std::shared_ptr<Core::Camera> camera, const Core::Vector2f&
         _initial_jump_velocity = 2 * jump_height / jump_dt;
 
         _horizontal_movement_force = 200;
-        _drag.x = 0.1 * 60;
+        _drag.x = 0;
+        _drag.y = 0;
 
         _mass = 20;
         _max_velocity = {1.4, _initial_jump_velocity * 1.5f};
 }
 
-void Core::Doodle::update(float t, float dt)
+void Core::Doodle::update(double t, float dt)
 {
         // check raycast under doodle
         if (getRaycasts()[0]->isActivated() && _hit_platform) {
@@ -47,7 +48,7 @@ void Core::Doodle::update(float t, float dt)
                 _standing = false;
         }
 
-        // jumping
+        // _jumping
         if (_standing && _input_map->up > 0) {
                 _velocity.y = _initial_jump_velocity;
                 _standing = false;

@@ -10,9 +10,9 @@ class PlayerView : public EntityView
 private:
         // false = right
         // true = left
-        bool direction;
+        bool _direction;
         // true = in the air
-        bool jumping;
+        bool _jumping;
 
 public:
         PlayerView(std::weak_ptr<Core::EntityModel> entity_model);

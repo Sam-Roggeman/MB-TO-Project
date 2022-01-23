@@ -19,7 +19,14 @@ Core::Vector2f& Core::Vector2f::operator=(const Core::Vector2f& other)
         return *this;
 }
 
-bool Core::Vector2f::operator==(const Core::Vector2f& other) const { return (x == other.x) && (y == other.y); }
+Core::Vector2f Core::Vector2f::operator+(const Core::Vector2f& other) const { return {x + other.x, y + other.y}; }
+
+Core::Vector2f Core::Vector2f::operator+(float scalar) const { return {x + scalar, y + scalar}; }
+
+Core::Vector2f Core::operator+(float scalar, const Core::Vector2f& other)
+{
+        return {scalar + other.x, scalar + other.y};
+}
 
 Core::Vector2f& Core::Vector2f::operator+=(const Core::Vector2f& other)
 {
@@ -33,6 +40,15 @@ Core::Vector2f& Core::Vector2f::operator+=(float scalar)
         x += scalar;
         y += scalar;
         return *this;
+}
+
+Core::Vector2f Core::Vector2f::operator-(const Core::Vector2f& other) const { return {x - other.x, y - other.y}; }
+
+Core::Vector2f Core::Vector2f::operator-(float scalar) const { return {x - scalar, y - scalar}; }
+
+Core::Vector2f Core::operator-(float scalar, const Core::Vector2f& other)
+{
+        return {scalar - other.x, scalar - other.y};
 }
 
 Core::Vector2f& Core::Vector2f::operator-=(const Core::Vector2f& other)
@@ -49,24 +65,6 @@ Core::Vector2f& Core::Vector2f::operator-=(float scalar)
         return *this;
 }
 
-Core::Vector2f Core::Vector2f::operator+(const Core::Vector2f& other) const { return {x + other.x, y + other.y}; }
-
-Core::Vector2f Core::Vector2f::operator+(float scalar) const { return {x + scalar, y + scalar}; }
-
-Core::Vector2f Core::operator+(float scalar, const Core::Vector2f& other)
-{
-        return {scalar + other.x, scalar + other.y};
-}
-
-Core::Vector2f Core::Vector2f::operator-(const Core::Vector2f& other) const { return {x - other.x, y - other.y}; }
-
-Core::Vector2f Core::Vector2f::operator-(float scalar) const { return {x - scalar, y - scalar}; }
-
-Core::Vector2f Core::operator-(float scalar, const Core::Vector2f& other)
-{
-        return {scalar - other.x, scalar - other.y};
-}
-
 Core::Vector2f Core::Vector2f::operator*(float scalar) const { return {x * scalar, y * scalar}; }
 
 Core::Vector2f Core::operator*(float scalar, const Core::Vector2f& other)
@@ -74,7 +72,28 @@ Core::Vector2f Core::operator*(float scalar, const Core::Vector2f& other)
         return {scalar * other.x, scalar * other.y};
 }
 
+Core::Vector2f& Core::Vector2f::operator*=(float scalar)
+{
+        x *= scalar;
+        y *= scalar;
+        return *this;
+}
+
 Core::Vector2f Core::Vector2f::operator/(float scalar) const { return {x / scalar, y / scalar}; }
+
+Core::Vector2f Core::operator/(float scalar, const Core::Vector2f& other)
+{
+        return {other.x / scalar, other.y / scalar};
+}
+
+Core::Vector2f& Core::Vector2f::operator/=(float scalar)
+{
+        x /= scalar;
+        y /= scalar;
+        return *this;
+}
+
+bool Core::Vector2f::operator==(const Core::Vector2f& other) const { return (x == other.x) && (y == other.y); }
 
 bool Core::Vector2f::operator<(const Core::Vector2f& other) const { return (x < other.x) && (y < other.y); }
 
@@ -111,21 +130,38 @@ float Core::Vector2f::dotProduct(const Vector2f& other) const { return x * other
 
 float Core::Vector2f::crossProduct(const Vector2f& other) const { return (x * other.y) - (y * other.x); }
 
-Core::Vector2f& Core::Vector2f::rotate(const Vector2f& pivot_point, float angle) {
-        if (pivot_point == *this) return *this;
+Core::Vector2f& Core::Vector2f::rotate(float angle_radian, const Vector2f& pivot_point)
+{
+        if (pivot_point == *this)
+                return *this;
 
         // translate point back to origin pivot
         *this -= pivot_point;
-
-        float angle_radian = angle * static_cast<float>(M_PI) / 180.f;
 
         // rotate endpoint
         Vector2f new_point = {this->x * std::cos(angle_radian) - this->y * std::sin(angle_radian),
                               this->x * std::sin(angle_radian) + this->y * std::cos(angle_radian)};
 
         // translate point back to pivot point
-        *this = new_point + pivot_point;
+        *this = pivot_point + new_point;
 
         return *this;
 }
 
+Core::Vector2f& Core::Vector2f::scale(const Core::Vector2f& scale, const Core::Vector2f& pivot_point)
+{
+        if (pivot_point == *this)
+                return *this;
+
+        // translate point back to origin pivot
+        *this -= pivot_point;
+
+        // rotate endpoint
+        x *= scale.x;
+        y *= scale.y;
+
+        // translate point back to pivot point
+        *this += pivot_point;
+
+        return *this;
+}

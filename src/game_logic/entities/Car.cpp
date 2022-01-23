@@ -9,7 +9,7 @@ Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& posit
         _rotation_angle = 120;
 }
 
-void Core::Car::update(float t, float dt)
+void Core::Car::update(double t, float dt)
 {
         Vector2f front_direction = _position - _back_pivot_point;
         front_direction.normalize();
@@ -42,7 +42,7 @@ void Core::Car::update(float t, float dt)
         if (turning_radius > 1) turning_radius = 1;
 //        float turning_radius = std::pow(_velocity.length(), 2);
 
-        // rotation
+        // _rotation
         if (_input_map->left > 0) {
                 if (going_forwards)
                         rotate(_rotation_angle * dt * turning_radius, _back_pivot_point);
@@ -80,34 +80,36 @@ void Core::Car::move(const Core::Vector2f& vector)
 
 void Core::Car::setRotation(float rotation)
 {
-        _back_pivot_point.rotate(_position, rotation - _rotation);
-        _front_pivot_point.rotate(_position, rotation - _rotation);
+        _back_pivot_point.rotate(rotation - _rotation, _position);
+        _front_pivot_point.rotate(rotation - _rotation, _position);
         EntityModel::setRotation(rotation);
 }
 
 void Core::Car::rotate(float angle)
 {
-        _back_pivot_point.rotate(_position, angle);
-        _front_pivot_point.rotate(_position, angle);
+        _back_pivot_point.rotate(angle, _position);
+        _front_pivot_point.rotate(angle, _position);
         EntityModel::rotate(angle);
 }
 
 void Core::Car::rotate(float angle, const Core::Vector2f& pivot_point)
 {
-        _back_pivot_point.rotate(pivot_point, angle);
-        _front_pivot_point.rotate(pivot_point, angle);
+        _back_pivot_point.rotate(angle, pivot_point);
+        _front_pivot_point.rotate(angle, pivot_point);
         EntityModel::rotate(angle, pivot_point);
 }
 
 void Core::Car::scale(const Core::Vector2f& scale)
 {
-        // todo
+        _back_pivot_point.scale(scale, _position);
+        _front_pivot_point.scale(scale, _position);
         EntityModel::scale(scale);
 }
 
 void Core::Car::setScale(const Core::Vector2f& scale)
 {
-        // todo
+        _back_pivot_point.scale({scale.x / _scale.x, scale.y / _scale.y}, _position);
+        _front_pivot_point.scale({scale.x / _scale.x, scale.y / _scale.y}, _position);
         EntityModel::setScale(scale);
 }
 

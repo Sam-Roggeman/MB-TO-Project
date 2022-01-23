@@ -20,7 +20,7 @@ public:
         Doodle(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size);
         ~Doodle() = default;
 
-        void update(float t, float dt) override;
+        void update(double t, float dt) override;
 
         void setHitPlatform(bool hit_platform);
 };

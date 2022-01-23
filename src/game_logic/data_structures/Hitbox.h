@@ -2,6 +2,7 @@
 #define UABA2_AP_PROJECT_HITBOX_H
 
 #include "../entities/EntityModel.h"
+#include "../utils/Utils.h"
 #include "Vector2f.h"
 #include <vector>
 
@@ -10,10 +11,8 @@ class EntityModel;
 namespace Core {
 class Hitbox
 {
-        // origin is located at the centre of the entitymodel
         Vector2f _origin;
         std::vector<Vector2f> _points;
-
         Vector2f _radius;
 
         bool _is_passthrough;

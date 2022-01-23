@@ -9029,7 +9029,7 @@ class parser
                     // We are done with this array. Before we can parse a
                     // new value, we need to evaluate the new state first.
                     // By setting skip_to_state_evaluation to false, we
-                    // are effectively jumping to the beginning of this if.
+                    // are effectively _jumping to the beginning of this if.
                     assert(not states.empty());
                     states.pop_back();
                     skip_to_state_evaluation = true;
@@ -9085,7 +9085,7 @@ class parser
                     // We are done with this object. Before we can parse a
                     // new value, we need to evaluate the new state first.
                     // By setting skip_to_state_evaluation to false, we
-                    // are effectively jumping to the beginning of this if.
+                    // are effectively _jumping to the beginning of this if.
                     assert(not states.empty());
                     states.pop_back();
                     skip_to_state_evaluation = true;

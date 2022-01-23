@@ -19,7 +19,7 @@ public:
         Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size);
         ~Car() = default;
 
-        void update(float t, float dt) override;
+        void update(double t, float dt) override;
 
         void setPosition(const Vector2f& position) override;
 

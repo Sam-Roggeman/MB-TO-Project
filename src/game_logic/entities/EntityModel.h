@@ -1,12 +1,12 @@
 #ifndef UABA2_AP_PROJECT_ENTITYMODEL_H
 #define UABA2_AP_PROJECT_ENTITYMODEL_H
 
-#include "../utils/Camera.h"
-#include "../utils/InputMap.h"
 #include "../data_structures/Hitbox.h"
 #include "../data_structures/Raycast.h"
 #include "../data_structures/Vector2f.h"
 #include "../observer_pattern_interface/ISubject.h"
+#include "../utils/Camera.h"
+#include "../utils/InputMap.h"
 #include <algorithm>
 #include <set>
 #include <utility>
@@ -24,7 +24,6 @@ protected:
         float _rotation;
         Vector2f _scale;
 
-        // todo getters & setters
         Vector2f _force;
         float _mass;
         Vector2f _velocity;
@@ -46,7 +45,7 @@ public:
         EntityModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position,
                     const Core::Vector2f& view_size);
 
-        virtual void update(float t, float dt);
+        virtual void update(double t, float dt);
 
         void setInputMap(const std::shared_ptr<InputMap>& input_map);
 
@@ -60,7 +59,7 @@ public:
 
         virtual float getRotation() const;
 
-        virtual void setRotation(float rotation);
+        virtual void setRotation(float angle);
 
         virtual void rotate(float angle);
 
@@ -72,9 +71,29 @@ public:
 
         virtual void scale(const Vector2f& scale);
 
+        virtual Vector2f getForce() const;
+
+        virtual void setForce(const Vector2f& force);
+
+        virtual float getMass() const;
+
+        virtual void setMass(float mass);
+
         virtual Vector2f getVelocity() const;
 
         virtual void setVelocity(const Vector2f& velocity);
+
+        virtual Vector2f getMaxVelocity() const;
+
+        virtual void setMaxVelocity(const Vector2f& max_velocity);
+
+        virtual Vector2f getAcceleration() const;
+
+        virtual void setAcceleration(const Vector2f& acceleration);
+
+        virtual Vector2f getDrag() const;
+
+        virtual void setDrag(const Vector2f& drag);
 
         virtual Vector2f getViewSize() const;
 
