@@ -8,9 +8,9 @@ Stopwatch& Stopwatch::getInstance()
 }
 
 Stopwatch::Stopwatch()
-    : _a(std::chrono::steady_clock::now()), _b(std::chrono::steady_clock::now()), _fps_limit(60),
-      _physics_delta_time(1.0f / 120), _cap_framerate(true), _delta_time(0), _frame_count(0), _duration(0),
-      _sample_duration(500)
+    : _a(std::chrono::steady_clock::now()), _b(std::chrono::steady_clock::now()), _fps_limit(60), _cap_framerate(true),
+      _delta_time(0), _physics_delta_time(1.0f / 120), _physics_time(0), _accumulator(0), _physics_speed(1),
+      _sample_duration(500), _duration(0), _frame_count(0), _average_fps(0)
 {
         _ms_limit = (1000.f / static_cast<float>(_fps_limit));
 }
@@ -47,11 +47,17 @@ float Stopwatch::getDeltaTime() const { return _delta_time * 1e-3f; }
 
 float Stopwatch::getPhysicsDeltaTime() const { return _physics_delta_time; }
 
-float Stopwatch::getPhysicsTime() const { return _physics_time; }
+void Stopwatch::setPhysicsDeltaTime(float dt) { _physics_delta_time = dt; }
 
-void Stopwatch::PhysicsUpdate(const std::function<void(float, float)>& func)
+double Stopwatch::getPhysicsTime() const { return _physics_time; }
+
+float Stopwatch::getPhysicsSpeed() const { return _physics_speed; }
+
+void Stopwatch::setPhysicsSpeed(float physics_speed) { _physics_speed = physics_speed;}
+
+void Stopwatch::PhysicsUpdate(const std::function<void(double, float)>& func)
 {
-        _accumulator += _delta_time * 1e-3f;
+        _accumulator += _delta_time * 1e-3f * _physics_speed;
         while (_accumulator >= _physics_delta_time) {
                 func(_physics_time, _physics_delta_time);
 

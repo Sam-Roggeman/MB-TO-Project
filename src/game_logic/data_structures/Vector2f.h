@@ -19,19 +19,15 @@ public:
 
         Vector2f& operator=(const Vector2f& other);
 
-        Vector2f& operator+=(const Vector2f& other);
-
-        Vector2f& operator+=(float scalar);
-
-        Vector2f& operator-=(const Vector2f& other);
-
-        Vector2f& operator-=(float scalar);
-
         Vector2f operator+(const Vector2f& other) const;
 
         Vector2f operator+(float scalar) const;
 
         friend Vector2f operator+(float scalar, const Vector2f& other);
+
+        Vector2f& operator+=(const Vector2f& other);
+
+        Vector2f& operator+=(float scalar);
 
         Vector2f operator-(const Vector2f& other) const;
 
@@ -39,11 +35,21 @@ public:
 
         friend Vector2f operator-(float scalar, const Vector2f& other);
 
+        Vector2f& operator-=(const Vector2f& other);
+
+        Vector2f& operator-=(float scalar);
+
         Vector2f operator*(float scalar) const;
 
         friend Vector2f operator*(float scalar, const Vector2f& other);
 
+        Vector2f& operator*=(float scalar);
+
         Vector2f operator/(float scalar) const;
+
+        friend Vector2f operator/(float scalar, const Vector2f& other);
+
+        Vector2f& operator/=(float scalar);
 
         bool operator==(const Vector2f& other) const;
 
@@ -69,7 +75,9 @@ public:
 
         float crossProduct(const Vector2f& other) const;
 
-        Vector2f& rotate(const Vector2f& pivot_point, float angle);
+        Vector2f& rotate(float angle_radian, const Vector2f& pivot_point);
+
+        Vector2f& scale(const Vector2f& scale, const Vector2f& pivot_point);
 };
 } // namespace Core
 

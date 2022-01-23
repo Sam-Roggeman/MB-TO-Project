@@ -2,8 +2,7 @@
 
 Representation::Game::Game()
     : _screen_width(RepresentationConstants::screen_width), _screen_height(RepresentationConstants::screen_height),
-      _window(new sf::RenderWindow(sf::VideoMode(_screen_width, _screen_height), "SFML_test",
-                                   sf::Style::Titlebar | sf::Style::Close)),
+      _window(new sf::RenderWindow(sf::VideoMode(_screen_width, _screen_height), "SFML_test")),
       _running(true), _entity_model_creator(new Representation::EntityModelCreator)
 {
         _world = std::make_unique<Core::World>(_entity_model_creator, 0, _screen_width, _screen_height, 0);
@@ -58,6 +57,7 @@ void Representation::Game::draw()
 void Representation::Game::handleEvents()
 {
         sf::Event event{};
+        sf::View view = _window->getDefaultView();
         while (_window->pollEvent(event)) {
                 switch (event.type) {
                 case sf::Event::Closed:
@@ -68,6 +68,14 @@ void Representation::Game::handleEvents()
                 case sf::Event::Resized:
                         _screen_width = _window->getSize().x;
                         _screen_height = _window->getSize().y;
+//                        std::cout << "bruh -> " << _screen_width << ", " << _screen_height << std::endl;
+                        view.setSize({
+                            static_cast<float>(event.size.width),
+                            static_cast<float>(event.size.height)
+                        });
+//                        std::cout << "bruh -> " << view.getSize().x << ", " << view.getSize().y << std::endl;
+//                        std::cout << view.getSize() << std::endl;
+                        _window->setView(view);
                         break;
 
                 case sf::Event::KeyPressed:
@@ -107,8 +115,24 @@ void Representation::Game::handleInput(const sf::Event& event, bool pressed)
                 _world->getInputMap()->right = pressed;
                 break;
 
-        case sf::Keyboard::C:
+        case sf::Keyboard::Z:
                 _world->getInputMap()->custom1 = pressed;
+                break;
+
+        case sf::Keyboard::X:
+                _world->getInputMap()->custom2 = pressed;
+                break;
+
+        case sf::Keyboard::C:
+                _world->getInputMap()->custom3 = pressed;
+                break;
+
+        case sf::Keyboard::V:
+                _world->getInputMap()->custom4 = pressed;
+                break;
+
+        case sf::Keyboard::B:
+                _world->getInputMap()->custom5 = pressed;
                 break;
 
         default:

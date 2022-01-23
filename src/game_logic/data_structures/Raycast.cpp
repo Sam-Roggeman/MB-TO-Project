@@ -100,6 +100,13 @@ float Core::Raycast::getLength() const { return (_endpoint - _origin).length(); 
 
 void Core::Raycast::setLength(float length) { _endpoint = _origin + (getDirection() * length); }
 
+float Core::Raycast::getCollisionLength() const
+{
+        if (_activated)
+                return (_collision_point - _origin).length();
+        return 0;
+}
+
 bool Core::Raycast::isActivated() const { return _activated; }
 
 void Core::Raycast::setActivated(bool activated) { _activated = activated; }

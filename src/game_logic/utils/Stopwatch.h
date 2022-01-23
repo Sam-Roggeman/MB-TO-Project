@@ -20,14 +20,15 @@ class Stopwatch
         float _ms_limit;
         bool _cap_framerate;
 
-        float _physics_time;
         float _delta_time;
         float _physics_delta_time;
+        double _physics_time;
         float _accumulator;
+        float _physics_speed;
 
         float _sample_duration;
-        float _frame_count;
         float _duration;
+        float _frame_count;
         float _average_fps;
 
         Stopwatch();
@@ -45,9 +46,15 @@ public:
 
         float getPhysicsDeltaTime() const;
 
-        float getPhysicsTime() const;
+        void setPhysicsDeltaTime(float dt);
 
-        void PhysicsUpdate(const std::function<void(float, float)>& func);
+        double getPhysicsTime() const;
+
+        float getPhysicsSpeed() const;
+
+        void setPhysicsSpeed(float physics_speed);
+
+        void PhysicsUpdate(const std::function<void(double, float)>& func);
 
         float computeAlpha() const;
 

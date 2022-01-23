@@ -27,7 +27,7 @@ std::shared_ptr<Core::Doodle> Representation::EntityModelCreator::createDoodleMo
         player_view->addTexture("assets/sprites/doodle/doodle-right.png");
         player_view->addTexture("assets/sprites/doodle/doodle-left.png");
 
-        player_view->setTexture(0);
+        player_view->setTexture(1);
 
         // link model and view through the observer pattern
         player_model->addObserver(player_view);

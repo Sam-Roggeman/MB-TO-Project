@@ -1,32 +1,32 @@
 #include "PlayerView.h"
 
 Representation::PlayerView::PlayerView(std::weak_ptr<Core::EntityModel> entity_model)
-    : EntityView(std::move(entity_model))
+    : EntityView(std::move(entity_model)), _direction(true), _jumping(true)
 {
 }
 
 void Representation::PlayerView::handleEvent(const std::string& event)
 {
         if (event == "left") {
-                direction = true;
+                _direction = true;
         } else if (event == "right") {
-                direction = false;
+                _direction = false;
         } else if (event == "jump") {
-                jumping = true;
+                _jumping = true;
         } else if (event == "stand") {
-                jumping = false;
+                _jumping = false;
         }
 
-        // right jumping
-        if (!direction & jumping) {
+        // right _jumping
+        if (!_direction & _jumping) {
                 setTexture(0);
         }
-        // left jumping
-        else if (direction & jumping) {
+        // left _jumping
+        else if (_direction & _jumping) {
                 setTexture(1);
         }
         // right standing
-        else if (!direction & !jumping) {
+        else if (!_direction & !_jumping) {
                 setTexture(2);
         }
         // left standing
@@ -41,7 +41,7 @@ void Representation::PlayerView::setTexture(unsigned int texture_id)
 {
         EntityView::setTexture(texture_id);
 
-        if (direction) {
+        if (_direction) {
                 _sprite.setOrigin(static_cast<float>(_sprite.getTextureRect().width) / 3 * 2,
                                   static_cast<float>(_sprite.getTextureRect().height) / 2);
         } else {

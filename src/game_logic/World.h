@@ -19,7 +19,7 @@ private:
 
         // entities
         std::shared_ptr<IEntityModelCreator> _entity_model_creator;
-        std::shared_ptr<Car> _player;
+        std::shared_ptr<Doodle> _player;
         std::set<std::shared_ptr<Car>> _cars;
         std::set<std::shared_ptr<Wall>> _walls;
 
@@ -31,12 +31,12 @@ public:
 
         ~World();
 
-        void update(float t, float dt);
+        void update(double t, float dt);
 
         std::shared_ptr<InputMap> getInputMap();
 
 private:
-        void updateEntities(float t, float dt);
+        void updateEntities(double t, float dt);
 
         void checkCollisions();
 
