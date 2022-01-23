@@ -7,7 +7,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createDoodleModel(_camera, {0, 1}, {0.3, 0.3});
+        _player = _entity_model_creator->createCarModel(_camera, {0, 1}, {0.3, 0.3});
         _player->setInputMap(_user_input_map);
 
         std::shared_ptr<Wall> wall1 = _entity_model_creator->createWallModel(_camera, {1, 0.5}, {0.8, 0.8});
@@ -18,9 +18,10 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         std::shared_ptr<Core::Raycast> raycast = std::make_shared<Core::Raycast>(new_pos, new_direction, 0.4);
         wall1->addRaycast(raycast);
 
-//        std::shared_ptr<Car> car1 = _entity_model_creator->createCarModel(_camera, {-1, 0.5}, {0.3, 0.3});
-//        _cars.insert(car1);
-
+        //        std::shared_ptr<Car> car1 = _entity_model_creator->createCarModel(_camera, {-1, 0.5}, {0.3, 0.3});
+        //        _cars.insert(car1);
+        initializeWalls("./Inputfiles/Untitled2.png");
+        std::cout << _walls.size();
 }
 
 World::~World() = default;
@@ -30,8 +31,8 @@ void World::update(double t, float dt)
         // logic
         if (_user_input_map->custom4) {
                 _walls.begin()->get()->rotate(45 * Stopwatch::getInstance().getPhysicsDeltaTime());
-//                float new_scale = (std::cos(t) / 2) + 1.f;
-//                _walls.begin()->get()->setScale({new_scale, new_scale});
+                //                float new_scale = (std::cos(t) / 2) + 1.f;
+                //                _walls.begin()->get()->setScale({new_scale, new_scale});
         }
 
         if (_user_input_map->custom5) {
@@ -41,7 +42,7 @@ void World::update(double t, float dt)
         int i = 0;
         for (auto& raycast : _player->getRaycasts()) {
                 // distance
-//                std::cout << i << " -> " << raycast->getCollisionLength() << std::endl;
+                //                std::cout << i << " -> " << raycast->getCollisionLength() << std::endl;
                 i++;
         }
 
@@ -57,8 +58,8 @@ void World::update(double t, float dt)
         }
 
         for (auto& raycast : _player->getRaycasts()) {
-            float lengthToObstacle = (raycast->isActivated() ? (raycast->getOrigin() - raycast->getCollisionPoint()).length() : 1.3f);
-            
+                float lengthToObstacle =
+                    (raycast->isActivated() ? (raycast->getOrigin() - raycast->getCollisionPoint()).length() : 1.3f);
         }
         // updates
         updateEntities(t, dt);
@@ -85,7 +86,8 @@ void World::updateEntities(double t, float dt)
         }
 }
 
-void World::checkCollisions() {
+void World::checkCollisions()
+{
         for (auto& wall : _walls) {
                 // player
                 bool collided = checkCollision(_player, wall);
@@ -514,5 +516,42 @@ bool World::checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, co
 
         // lines are not parallel but do not intersect
         return false;
+}
+void World::initializeWalls(const std::string& inputname)
+{
+        imageProcessor imageProcessor{inputname};
+        unsigned int brick_side = std::max(imageProcessor.getRows() / 25, 1u);
+        unsigned int wallpixels{};
+        Core::Vector2f wall_pos{};
+        Core::Vector2f wall_size{};
+
+        unsigned threshold = (unsigned int)((float)brick_side * (float)brick_side) / 2;
+        for (unsigned int brickrow = 0; brickrow < imageProcessor.size() - brick_side; brickrow += brick_side) {
+                for (unsigned int brick_col = 0; brick_col < imageProcessor.at(brickrow).size() - brick_side;
+                     brick_col += brick_side) {
+                        wallpixels = 0;
+                        for (unsigned int row = 0; row < brick_side; row++) {
+                                for (unsigned int col = 0; col < brick_side; col++) {
+                                        if (col + brick_col >= 800) {
+                                                std::cout << "aaa";
+                                        }
+                                        if (imageProcessor.isWall(row + brickrow, col + brick_col)) {
+                                                wallpixels++;
+                                        }
+                                }
+                        }
+                        if (wallpixels >= threshold) {
+                                wall_size = Core::Vector2f((float)brick_side, (float)brick_side);
+                                wall_pos = Core::Vector2f((float)brickrow + (float)brick_side / 2,
+                                                          (float)brick_col + (float)brick_side / 2);
+                                _walls.insert(_entity_model_creator->createWallModel(
+                                    _camera,
+                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(), 0.0f,
+                                                               (float)imageProcessor.getRows()),
+                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(), 0.0f,
+                                                         (float)imageProcessor.getRows())));
+                        }
+                }
+        }
 }
 } // namespace Core

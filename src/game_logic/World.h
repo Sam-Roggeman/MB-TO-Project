@@ -1,11 +1,13 @@
 #ifndef PHYSICS_ENGINE_WORLD_H
 #define PHYSICS_ENGINE_WORLD_H
 
+#include "../imageclasses/imageProcessor.h"
 #include "data_structures/Raycast.h"
 #include "entities/IEntityModelCreator.h"
 #include "entities/Wall.h"
 #include "utils/InputMap.h"
 #include "utils/Stopwatch.h"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -19,7 +21,7 @@ private:
 
         // entities
         std::shared_ptr<IEntityModelCreator> _entity_model_creator;
-        std::shared_ptr<Doodle> _player;
+        std::shared_ptr<Car> _player;
         std::set<std::shared_ptr<Car>> _cars;
         std::set<std::shared_ptr<Wall>> _walls;
 
@@ -39,6 +41,8 @@ private:
         void updateEntities(double t, float dt);
 
         void checkCollisions();
+
+        void initializeWalls(const std::string& inputname);
 
         static bool checkCollision(const std::shared_ptr<EntityModel>& entity1,
                                    const std::shared_ptr<EntityModel>& entity2, bool collision_response = true);

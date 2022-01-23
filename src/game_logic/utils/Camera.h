@@ -27,10 +27,14 @@ public:
         void setPosition(const Vector2f& position);
 
         void setCameraBounderies(float x_min, float x_max, float y_min, float y_max);
+
         void setRepresentationBounderies(float x_min, float x_max, float y_min, float y_max);
 
         Vector2f projectCoordinate(const Vector2f& point) const;
+        Vector2f projectCoordinate(const Vector2f& point, float x_min, float x_max, float y_min, float y_max) const;
         Core::Vector2f projectSize(const Core::Vector2f& size) const;
+        Core::Vector2f projectSize(const Core::Vector2f& size, float x_min, float x_max, float y_min,
+                                   float y_max) const;
 };
 } // namespace Core
 #endif // UABA2_AP_PROJECT_CAMERA_H
