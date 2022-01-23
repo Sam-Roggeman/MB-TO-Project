@@ -19,7 +19,7 @@ struct production
         void augment();
         std::string getStringAfterDot() const;
 
-        bool operator<(const production&);
+        bool operator<(const production&) const;
         void shiftDot();
         bool operator==(const production& that) const;
         bool operator!=(const production& that) const;

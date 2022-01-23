@@ -75,7 +75,7 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         // raycasts
         for (unsigned int i = 0; i < raycast_count; i++) {
                 Core::Vector2f direction{-1, 0};
-                std::shared_ptr<Core::Raycast> raycast = std::make_shared<Core::Raycast>(car_model->getPosition(), direction, 10);
+                std::shared_ptr<Core::Raycast> raycast = std::make_shared<Core::Raycast>(car_model->getPosition(), direction, 1.30);
                 raycast->rotate(-angle_step * static_cast<float>(i));
                 car_model->addRaycast(raycast);
         }

@@ -37,7 +37,7 @@ void production::shiftDot()
         std::iter_swap(iterator, std::next(iterator, 1));
 }
 
-bool production::operator<(const production& p)
+bool production::operator<(const production& p) const
 {
         if (this->from < p.from) {
                 return true;

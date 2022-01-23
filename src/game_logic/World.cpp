@@ -27,6 +27,10 @@ void World::update(float t, float dt)
                 _walls.begin()->get()->rotate(45 * Stopwatch::getInstance().getPhysicsDeltaTime());
         }
 
+        for (auto& raycast : _player->getRaycasts()) {
+            float lengthToObstacle = (raycast->isActivated() ? (raycast->getOrigin() - raycast->getCollisionPoint()).length() : 1.3f);
+            
+        }
         // updates
         updateEntities(t, dt);
 
