@@ -20,7 +20,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         //        std::shared_ptr<Car> car1 = _entity_model_creator->createCarModel(_camera, {-1, 0.5}, {0.3, 0.3});
         //        _cars.insert(car1);
-        initializeWalls("./Inputfiles/Untitled2.png");
+        initializeWalls("assets/maps/Untitled2.png");
         std::cout << _walls.size();
 }
 
@@ -541,12 +541,14 @@ void World::initializeWalls(const std::string& inputname)
                                 wall_size = Core::Vector2f((float)brick_side, (float)brick_side);
                                 wall_pos = Core::Vector2f((float)brickrow + (float)brick_side / 2,
                                                           (float)brick_col + (float)brick_side / 2);
+                                Vector2f wall_new_pos = _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(), 0.0f,
+                                                                          (float)imageProcessor.getRows());
                                 _walls.insert(_entity_model_creator->createWallModel(
                                     _camera,
-                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(), 0.0f,
-                                                               (float)imageProcessor.getRows()),
-                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(), 0.0f,
-                                                         (float)imageProcessor.getRows())));
+                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+                                                               (float)imageProcessor.getRows(), 0.0f),
+                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
+                                                         (float)imageProcessor.getRows(), 0.0f)));
                         }
                 }
         }

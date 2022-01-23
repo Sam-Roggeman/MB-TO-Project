@@ -5,9 +5,6 @@ set(APP_EXE RacingSimulator)
 
 project(${APP_EXE})
 
-if(WIN32)
-    link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
-endif()
 # Automata and grammars
 file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp
@@ -36,6 +33,10 @@ file(GLOB_RECURSE source_game_logic
 
 ADD_LIBRARY(SOURCE_GAME_LOGIC_LIB STATIC ${source_game_logic})
 
+# OpenCV
+if(WIN32)
+    link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
+endif()
 
 find_package(OpenCV REQUIRED)
 include_directories( ${OpenCV_INCLUDE_DIRS} )

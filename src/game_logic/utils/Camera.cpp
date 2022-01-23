@@ -66,17 +66,17 @@ Core::Vector2f Core::Camera::projectCoordinate(const Vector2f& point, float x_mi
         float alpha_y{0};
 
         // check if the limits are valid and calculate alpha value
-        if (_camera_x_bounderies.y - _camera_x_bounderies.x != 0)
-                alpha_x = (point.x - _camera_x_bounderies.x) / (_camera_x_bounderies.y - _camera_x_bounderies.x);
+        if (x_max - x_min != 0)
+                alpha_x = (point.x - x_min) / (x_max - x_min);
         else
                 alpha_x = 0;
-        if (_camera_y_bounderies.y - _camera_y_bounderies.x != 0)
-                alpha_y = (point.y - _camera_y_bounderies.x) / (_camera_y_bounderies.y - _camera_y_bounderies.x);
+        if (y_max - y_min != 0)
+                alpha_y = (point.y - y_min) / (y_max - y_min);
         else
                 alpha_y = 0;
 
         // linear interpolation of coordinate
-        new_point = {CoreUtils::lerp(x_min, x_max, alpha_x), CoreUtils::lerp(y_min, y_max, alpha_y)};
+        new_point = {CoreUtils::lerp(_camera_x_bounderies.x, _camera_x_bounderies.y, alpha_x), CoreUtils::lerp(_camera_y_bounderies.x, _camera_y_bounderies.y, alpha_y)};
 
         return new_point;
 }
@@ -101,9 +101,9 @@ Core::Vector2f Core::Camera::projectSize(const Core::Vector2f& size, float x_min
 {
         Vector2f new_size;
 
-        new_size.x = std::abs(((x_max - x_min) / (_camera_x_bounderies.y - _camera_x_bounderies.x))) * size.x;
+        new_size.x = std::abs((_camera_x_bounderies.y - _camera_x_bounderies.x) / (x_max - x_min)) * size.x;
 
-        new_size.y = std::abs(((y_max - y_min) / (_camera_y_bounderies.y - _camera_y_bounderies.x))) * size.y;
+        new_size.y = std::abs((_camera_y_bounderies.y - _camera_y_bounderies.x) / (y_max - y_min)) * size.y;
 
         return new_size;
 }
