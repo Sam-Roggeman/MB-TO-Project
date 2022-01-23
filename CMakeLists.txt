@@ -5,9 +5,9 @@ set(APP_EXE RacingSimulator)
 
 project(${APP_EXE})
 
-
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
-
+if(WIN32)
+    link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
+endif()
 # Automata and grammars
 file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp

@@ -532,9 +532,6 @@ void World::initializeWalls(const std::string& inputname)
                         wallpixels = 0;
                         for (unsigned int row = 0; row < brick_side; row++) {
                                 for (unsigned int col = 0; col < brick_side; col++) {
-                                        if (col + brick_col >= 800) {
-                                                std::cout << "aaa";
-                                        }
                                         if (imageProcessor.isWall(row + brickrow, col + brick_col)) {
                                                 wallpixels++;
                                         }
