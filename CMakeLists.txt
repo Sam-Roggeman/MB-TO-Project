@@ -22,7 +22,6 @@ file(GLOB_RECURSE source_game_representation
         src/game_representation/*.h
         )
 
-
 add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${imageclasses})
 
 # Game logic static library

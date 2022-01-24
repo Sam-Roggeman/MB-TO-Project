@@ -42,9 +42,9 @@ public:
 
         void move(const Vector2f& vector);
 
-        void rotate(float angle);
+        void rotate(float angle_radian);
 
-        void rotate(float angle, const Vector2f& pivot);
+        void rotate(float angle_radian, const Vector2f& pivot);
 
         void scale(const Vector2f& scale);
 

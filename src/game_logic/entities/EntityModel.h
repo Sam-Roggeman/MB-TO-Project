@@ -59,11 +59,11 @@ public:
 
         virtual float getRotation() const;
 
-        virtual void setRotation(float angle);
+        virtual void setRotation(float angle_radian);
 
-        virtual void rotate(float angle);
+        virtual void rotate(float angle_radian);
 
-        virtual void rotate(float angle, const Core::Vector2f& pivot_point);
+        virtual void rotate(float angle_radian, const Core::Vector2f& pivot_point);
 
         virtual Vector2f getScale() const;
 

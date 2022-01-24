@@ -1,7 +1,21 @@
 #include "EntityModelCreator.h"
 #include "PlayerView.h"
 
-Representation::EntityModelCreator::EntityModelCreator() {}
+Representation::EntityModelCreator::EntityModelCreator()
+{
+}
+
+std::shared_ptr<sf::Texture> Representation::EntityModelCreator::loadTexture(const std::string& file_path)
+{
+        std::shared_ptr<sf::Texture> new_texture = std::make_shared<sf::Texture>();
+        _loaded_textures.push_back(new_texture);
+
+        if (!new_texture->loadFromFile(file_path)) {
+                std::cerr << "Couldn't load the texture!" << std::endl;
+        }
+
+        return new_texture;
+}
 
 std::shared_ptr<Core::Doodle> Representation::EntityModelCreator::createDoodleModel(
     std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
@@ -22,10 +36,10 @@ std::shared_ptr<Core::Doodle> Representation::EntityModelCreator::createDoodleMo
         std::weak_ptr<Representation::EntityView> player_view_weak = player_view;
         _player_views.push_back(player_view_weak);
 
-        player_view->addTexture("assets/sprites/doodle/doodle-jump-right.png");
-        player_view->addTexture("assets/sprites/doodle/doodle-jump-left.png");
-        player_view->addTexture("assets/sprites/doodle/doodle-right.png");
-        player_view->addTexture("assets/sprites/doodle/doodle-left.png");
+        player_view->addTexture(loadTexture("assets/sprites/doodle/doodle-jump-right.png"));
+        player_view->addTexture(loadTexture("assets/sprites/doodle/doodle-jump-left.png"));
+        player_view->addTexture(loadTexture("assets/sprites/doodle/doodle-right.png"));
+        player_view->addTexture(loadTexture("assets/sprites/doodle/doodle-left.png"));
 
         player_view->setTexture(1);
 
@@ -40,22 +54,22 @@ std::shared_ptr<Core::Wall> Representation::EntityModelCreator::createWallModel(
                                                                                 const Core::Vector2f& view_size)
 {
         // entity model
-        std::shared_ptr<Core::Wall> platform_model(new Core::Wall(camera, position, view_size));
+        std::shared_ptr<Core::Wall> wall_model(new Core::Wall(camera, position, view_size));
 
         // entity view
-        std::shared_ptr<Representation::EntityView> platform_view(new Representation::EntityView(platform_model));
-        std::weak_ptr<Representation::EntityView> platform_view_weak = platform_view;
-        _wall_views.push_back(platform_view_weak);
+        std::shared_ptr<Representation::EntityView> wall_view(new Representation::EntityView(wall_model));
+        std::weak_ptr<Representation::EntityView> wall_view_weak = wall_view;
+        _wall_views.push_back(wall_view_weak);
 
         // entity view textures & animations
-        platform_view->addTexture("assets/textures/cobble_stone.png");
+        wall_view->addTexture(loadTexture("assets/textures/cobble_stone.png"));
 
-        platform_view->setTexture(0);
+        wall_view->setTexture(0);
 
         // link model and view through the observer pattern
-        platform_model->addObserver(platform_view);
+        wall_model->addObserver(wall_view);
 
-        return platform_model;
+        return wall_model;
 }
 
 std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera,
@@ -66,16 +80,15 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         std::shared_ptr<Core::Car> car_model(new Core::Car(camera, position, view_size));
         car_model->getHitbox()->setRectangleHitbox(view_size.x / 2.5f, view_size.y * 0.85f);
         car_model->setStatic(false);
-        car_model->setBackPivotPoint({position.x, position.y - (view_size.y / 2)});
-        car_model->setFrontPivotPoint({position.x, position.y + (view_size.y / 2)});
 
         unsigned int raycast_count = 5;
 
-        float angle_step = 180.f / static_cast<float>(raycast_count - 1);
+        float angle_step = M_PI / static_cast<float>(raycast_count - 1);
         // raycasts
         for (unsigned int i = 0; i < raycast_count; i++) {
                 Core::Vector2f direction{-1, 0};
-                std::shared_ptr<Core::Raycast> raycast = std::make_shared<Core::Raycast>(car_model->getPosition(), direction, 1.30);
+                std::shared_ptr<Core::Raycast> raycast =
+                    std::make_shared<Core::Raycast>(car_model->getPosition(), direction, 1.30);
                 raycast->rotate(-angle_step * static_cast<float>(i));
                 car_model->addRaycast(raycast);
         }
@@ -86,7 +99,7 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         _car_views.push_back(car_view_weak);
 
         // entity view textures & animations
-        car_view->addTexture("assets/sprites/car/Audi.png");
+        car_view->addTexture(loadTexture("assets/sprites/car/Audi.png"));
 
         car_view->setTexture(0);
 
@@ -96,9 +109,39 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         return car_model;
 }
 
+std::shared_ptr<Core::GroundTile> Representation::EntityModelCreator::createGroundTileModel(
+    std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
+{
+        // entity model
+        std::shared_ptr<Core::GroundTile> ground_tile_model(new Core::GroundTile(camera, position, view_size));
+
+        // entity view
+        std::shared_ptr<Representation::EntityView> ground_tile_view(new Representation::EntityView(ground_tile_model));
+        std::weak_ptr<Representation::EntityView> ground_tile_view_weak = ground_tile_view;
+        _ground_tiles_views.push_back(ground_tile_view_weak);
+        ground_tile_model->getHitbox()->setRectangleHitbox(0, 0);
+
+        // entity view textures & animations
+        ground_tile_view->addTexture(loadTexture("assets/textures/grass_tile_1.jpg"));
+
+        ground_tile_view->setTexture(0);
+
+        // link model and view through the observer pattern
+        ground_tile_model->addObserver(ground_tile_view);
+
+        return ground_tile_model;
+}
+
 std::vector<std::shared_ptr<Representation::EntityView>> Representation::EntityModelCreator::getEntityViews()
 {
         std::vector<std::shared_ptr<Representation::EntityView>> entity_views;
+
+        // order of these functions indicate draw order
+
+        // ground_tiles
+        std::vector<std::shared_ptr<Representation::EntityView>> ground_tiles_views =
+            getEntityViews(_ground_tiles_views);
+        entity_views.insert(entity_views.end(), ground_tiles_views.begin(), ground_tiles_views.end());
 
         // walls
         std::vector<std::shared_ptr<Representation::EntityView>> wall_views = getEntityViews(_wall_views);

@@ -27,64 +27,26 @@ void Core::Raycast::move(const Core::Vector2f& vector)
         _endpoint += vector;
 }
 
-void Core::Raycast::rotate(float angle)
+void Core::Raycast::rotate(float angle_radian)
 {
-        float angle_radian = angle * static_cast<float>(M_PI) / 180.f;
-
-        // translate point back to origin
-        _endpoint -= _origin;
-
-        // rotate endpoint
-        Vector2f new_point = {_endpoint.x * std::cos(angle_radian) - _endpoint.y * std::sin(angle_radian),
-                              _endpoint.x * std::sin(angle_radian) + _endpoint.y * std::cos(angle_radian)};
-
-        // translate point back to pivot point
-        _endpoint = new_point + _origin;
+        _endpoint.rotate(angle_radian, _origin);
 }
 
-void Core::Raycast::rotate(float angle, const Core::Vector2f& pivot)
+void Core::Raycast::rotate(float angle_radian, const Core::Vector2f& pivot)
 {
-        float angle_radian = angle * static_cast<float>(M_PI) / 180.f;
-
-        // translate point back to origin pivot
-        _endpoint -= pivot;
-        _origin -= pivot;
-
-        // rotate endpoint
-        Vector2f new_point = {_endpoint.x * std::cos(angle_radian) - _endpoint.y * std::sin(angle_radian),
-                              _endpoint.x * std::sin(angle_radian) + _endpoint.y * std::cos(angle_radian)};
-        Vector2f new_origin = {_origin.x * std::cos(angle_radian) - _origin.y * std::sin(angle_radian),
-                               _origin.x * std::sin(angle_radian) + _origin.y * std::cos(angle_radian)};
-
-        // translate point back to pivot point
-        _endpoint = new_point + pivot;
-        _origin = new_origin + pivot;
+        _endpoint.rotate(angle_radian, pivot);
+        _origin.rotate(angle_radian, pivot);
 }
 
 void Core::Raycast::scale(const Core::Vector2f& scale)
 {
-        // translate point back to origin
-        _endpoint -= _origin;
-
-        // rotate endpoint
-        _endpoint.x = _endpoint.x * scale.x;
-        _endpoint.y = _endpoint.y * scale.y;
-
-        // translate point back to pivot point
-        _endpoint += _origin;
+        _endpoint.scale(scale, _origin);
 }
 
 void Core::Raycast::scale(const Core::Vector2f& scale, const Core::Vector2f& pivot)
 {
-        // translate point back to origin
-        _endpoint -= pivot;
-
-        // rotate endpoint
-        _endpoint.x = _endpoint.x * scale.x;
-        _endpoint.y = _endpoint.y * scale.y;
-
-        // translate point back to pivot point
-        _endpoint += pivot;
+        _origin.scale(scale, pivot);
+        _endpoint.scale(scale, pivot);
 }
 
 Core::Vector2f Core::Raycast::getDirection() const

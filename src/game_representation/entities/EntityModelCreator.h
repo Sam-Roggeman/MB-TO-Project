@@ -11,12 +11,17 @@ namespace Representation {
 class EntityModelCreator : public Core::IEntityModelCreator
 {
 private:
+        std::vector<std::weak_ptr<Representation::EntityView>> _ground_tiles_views;
         std::vector<std::weak_ptr<Representation::EntityView>> _wall_views;
         std::vector<std::weak_ptr<Representation::EntityView>> _car_views;
         std::vector<std::weak_ptr<Representation::EntityView>> _player_views;
 
+        std::vector<std::shared_ptr<sf::Texture>> _loaded_textures;
+
 public:
         EntityModelCreator();
+
+        std::shared_ptr<sf::Texture> loadTexture(const std::string& file_path);
 
         std::shared_ptr<Core::Doodle> createDoodleModel(std::shared_ptr<Core::Camera> camera,
                                                         const Core::Vector2f& position,
@@ -28,6 +33,10 @@ public:
         std::shared_ptr<Core::Wall> createWallModel(std::shared_ptr<Core::Camera> camera,
                                                     const Core::Vector2f& position,
                                                     const Core::Vector2f& view_size) override;
+
+        std::shared_ptr<Core::GroundTile> createGroundTileModel(std::shared_ptr<Core::Camera> camera,
+                                                                const Core::Vector2f& position,
+                                                                const Core::Vector2f& view_size) override;
 
         std::vector<std::shared_ptr<Representation::EntityView>> getEntityViews();
 

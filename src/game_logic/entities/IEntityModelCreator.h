@@ -4,6 +4,7 @@
 #include "Car.h"
 #include "Doodle.h"
 #include "Wall.h"
+#include "GroundTile.h"
 #include <memory>
 
 namespace Core {
@@ -21,6 +22,10 @@ public:
         virtual std::shared_ptr<Core::Wall> createWallModel(std::shared_ptr<Core::Camera> camera,
                                                                 const Core::Vector2f& position,
                                                                 const Core::Vector2f& view_size) = 0;
+
+        virtual std::shared_ptr<Core::GroundTile> createGroundTileModel(std::shared_ptr<Core::Camera> camera,
+                                                            const Core::Vector2f& position,
+                                                            const Core::Vector2f& view_size) = 0;
 };
 } // namespace Core
 

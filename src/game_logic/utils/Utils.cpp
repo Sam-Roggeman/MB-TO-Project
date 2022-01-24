@@ -18,3 +18,16 @@ void CoreUtils::fDegreeMod(float& angle)
                 }
         }
 }
+
+void CoreUtils::fRadianMod(float& angle)
+{
+        if (angle > 0) {
+                while (angle > 2 * M_PI) {
+                        angle -= 2 * M_PI;
+                }
+        } else {
+                while (angle < -2 * M_PI) {
+                        angle += 2 * M_PI;
+                }
+        }
+}

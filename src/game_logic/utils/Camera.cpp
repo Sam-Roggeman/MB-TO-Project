@@ -27,6 +27,24 @@ Core::Vector2f Core::Camera::getPosition() const { return _position; }
 
 void Core::Camera::setPosition(const Core::Vector2f& position) { move(position - _position); }
 
+Core::Vector2f Core::Camera::getCameraXBounderies() const { return _camera_x_bounderies; }
+
+Core::Vector2f Core::Camera::getCameraYBounderies() const { return _camera_y_bounderies; }
+
+void Core::Camera::setCameraBounderies(float x_min, float x_max, float y_min, float y_max)
+{
+        _camera_x_bounderies = {x_min, x_max};
+        _camera_y_bounderies = {y_min, y_max};
+}
+
+float Core::Camera::getCamerawidth() const { return _camera_x_bounderies.y - _camera_x_bounderies.x; }
+
+float Core::Camera::getCameraheight() const { return _camera_y_bounderies.y - _camera_y_bounderies.x; }
+
+Core::Vector2f Core::Camera::getRepresentationXBounderies() const { return _representation_x_bounderies; }
+
+Core::Vector2f Core::Camera::getRepresentationYBounderies() const { return _representation_y_bounderies; }
+
 void Core::Camera::setRepresentationBounderies(float x_min, float x_max, float y_min, float y_max)
 {
         _representation_x_bounderies = {x_min, x_max};
@@ -76,7 +94,8 @@ Core::Vector2f Core::Camera::projectCoordinate(const Vector2f& point, float x_mi
                 alpha_y = 0;
 
         // linear interpolation of coordinate
-        new_point = {CoreUtils::lerp(_camera_x_bounderies.x, _camera_x_bounderies.y, alpha_x), CoreUtils::lerp(_camera_y_bounderies.x, _camera_y_bounderies.y, alpha_y)};
+        new_point = {CoreUtils::lerp(_camera_x_bounderies.x, _camera_x_bounderies.y, alpha_x),
+                     CoreUtils::lerp(_camera_y_bounderies.x, _camera_y_bounderies.y, alpha_y)};
 
         return new_point;
 }

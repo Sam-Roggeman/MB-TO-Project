@@ -68,13 +68,10 @@ void Representation::Game::handleEvents()
                 case sf::Event::Resized:
                         _screen_width = _window->getSize().x;
                         _screen_height = _window->getSize().y;
-//                        std::cout << "bruh -> " << _screen_width << ", " << _screen_height << std::endl;
                         view.setSize({
                             static_cast<float>(event.size.width),
                             static_cast<float>(event.size.height)
                         });
-//                        std::cout << "bruh -> " << view.getSize().x << ", " << view.getSize().y << std::endl;
-//                        std::cout << view.getSize() << std::endl;
                         _window->setView(view);
                         break;
 

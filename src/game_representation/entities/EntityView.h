@@ -15,7 +15,7 @@ class EntityView : public Core::IObserver
 protected:
         std::weak_ptr<Core::EntityModel> _entity_model;
         sf::Sprite _sprite;
-        std::vector<sf::Texture> _textures;
+        std::vector<std::shared_ptr<sf::Texture>> _textures;
         unsigned int _current_texture;
 
 public:
@@ -31,7 +31,7 @@ public:
 
         virtual sf::VertexArray getRaycasts() const;
 
-        virtual unsigned int addTexture(const std::string& file_path);
+        virtual unsigned int addTexture(const std::shared_ptr<sf::Texture>& texture);
 
         virtual void setTexture(unsigned int texture_id);
 };

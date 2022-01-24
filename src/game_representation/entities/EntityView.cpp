@@ -12,18 +12,18 @@ void Representation::EntityView::handleEvent()
                 Core::Vector2f new_position = entity_model_shared->getRepresentationPosition();
                 _sprite.setPosition(new_position.x, new_position.y);
 
-                _sprite.setRotation(entity_model_shared->getRotation());
+                _sprite.setRotation(CoreUtils::toDegree(entity_model_shared->getRotation()));
 
                 if (_current_texture + 1 > _textures.size())
                         return;
 
                 // todo getRepresentationViewSize() does not give the correct size when rotated
                 float x_scale_factor = entity_model_shared->getRepresentationViewSize().x /
-                                       static_cast<float>(_textures[_current_texture].getSize().x) *
+                                       static_cast<float>(_textures[_current_texture]->getSize().x) *
                                        entity_model_shared->getScale().x;
 
                 float y_scale_factor = entity_model_shared->getRepresentationViewSize().y /
-                                       static_cast<float>(_textures[_current_texture].getSize().y) *
+                                       static_cast<float>(_textures[_current_texture]->getSize().y) *
                                        entity_model_shared->getScale().y;
 
                 _sprite.setScale(x_scale_factor, y_scale_factor);
@@ -109,15 +109,9 @@ sf::VertexArray Representation::EntityView::getRaycasts() const
         return lines;
 }
 
-unsigned int Representation::EntityView::addTexture(const std::string& file_path)
+unsigned int Representation::EntityView::addTexture(const std::shared_ptr<sf::Texture>& texture)
 {
-        sf::Texture new_texture;
-        if (!new_texture.loadFromFile(file_path)) {
-                std::cerr << "Couldn't load the texture!" << std::endl;
-                return 0;
-        }
-
-        _textures.push_back(new_texture);
+        _textures.push_back(texture);
 
         return _textures.size() - 1;
 }
@@ -127,7 +121,7 @@ void Representation::EntityView::setTexture(unsigned int texture_id)
         _current_texture = texture_id;
         if (texture_id + 1 > _textures.size())
                 return;
-        _sprite.setTexture(_textures[texture_id]);
+        _sprite.setTexture(*_textures[texture_id]);
 
         _sprite.setOrigin(static_cast<float>(_sprite.getTextureRect().width) / 2,
                           static_cast<float>(_sprite.getTextureRect().height) / 2);

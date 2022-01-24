@@ -24,6 +24,7 @@ private:
         std::shared_ptr<Car> _player;
         std::set<std::shared_ptr<Car>> _cars;
         std::set<std::shared_ptr<Wall>> _walls;
+        std::set<std::shared_ptr<GroundTile>> _ground_tiles;
 
         std::shared_ptr<InputMap> _user_input_map;
 
@@ -38,6 +39,8 @@ public:
         std::shared_ptr<InputMap> getInputMap();
 
 private:
+        void generateGroundTiles();
+
         void updateEntities(double t, float dt);
 
         void checkCollisions();

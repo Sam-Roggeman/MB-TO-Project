@@ -34,19 +34,15 @@ void Core::Hitbox::move(const Core::Vector2f& vector)
         }
 }
 
-void Core::Hitbox::rotate(float angle)
+void Core::Hitbox::rotate(float angle_radian)
 {
-        float angle_radian = CoreUtils::toRadian(angle);
-
         for (auto& point : _points) {
                 point.rotate(angle_radian, _origin);
         }
 }
 
-void Core::Hitbox::rotate(float angle, const Vector2f& pivot)
+void Core::Hitbox::rotate(float angle_radian, const Vector2f& pivot)
 {
-        float angle_radian = CoreUtils::toRadian(angle);
-
         _origin.rotate(angle_radian, pivot);
 
         for (auto& point : _points) {
@@ -57,41 +53,17 @@ void Core::Hitbox::rotate(float angle, const Vector2f& pivot)
 void Core::Hitbox::scale(const Core::Vector2f& scale)
 {
         for (auto& point : _points) {
-                // translate point back to origin
-                point -= _origin;
-
-                // scale point
-                point.x = point.x * scale.x;
-                point.y = point.y * scale.y;
-
-                // translate point back to pivot point
-                point += _origin;
+                point.scale(scale, _origin);
         }
         _radius = _radius * (scale.x + scale.y) / 2;
 }
 
 void Core::Hitbox::scale(const Vector2f& scale, const Vector2f& pivot)
 {
-        // translate origin back to pivot origin
-        _origin -= pivot;
-
-        // scale point
-        _origin.x = _origin.x * scale.x;
-        _origin.y = _origin.y * scale.y;
-
-        // translate origin back to pivot point
-        _origin += pivot;
+        _origin.scale(scale, pivot);
 
         for (auto& point : _points) {
-                // translate point back to pivot origin
-                point -= pivot;
-
-                // scale point
-                point.x = point.x * scale.x;
-                point.y = point.y * scale.y;
-
-                // translate point back to pivot point
-                point += pivot;
+                point.scale(scale, pivot);
         }
         _radius = _radius * (scale.x + scale.y) / 2;
 }

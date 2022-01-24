@@ -68,37 +68,32 @@ void Core::EntityModel::move(const Vector2f& vector)
 
 float Core::EntityModel::getRotation() const { return _rotation; }
 
-void Core::EntityModel::setRotation(float angle)
+void Core::EntityModel::setRotation(float angle_radian)
 {
-        CoreUtils::fDegreeMod(angle);
-        _hitbox->rotate(angle - _rotation, _position);
+        _hitbox->rotate(angle_radian - _rotation, _position);
         for (auto& raycast : _raycasts) {
-                raycast->rotate(angle - _rotation, _position);
+                raycast->rotate(angle_radian - _rotation, _position);
         }
-        _rotation = angle;
+        _rotation = angle_radian;
 }
 
-void Core::EntityModel::rotate(float angle)
+void Core::EntityModel::rotate(float angle_radian)
 {
-        _hitbox->rotate(angle, _position);
+        _hitbox->rotate(angle_radian, _position);
         for (auto& raycast : _raycasts) {
-                raycast->rotate(angle, _position);
+                raycast->rotate(angle_radian, _position);
         }
-        _rotation -= angle;
-        CoreUtils::fDegreeMod(_rotation);
+        _rotation -= angle_radian;
 }
 
-void Core::EntityModel::rotate(float angle, const Core::Vector2f& pivot_point)
+void Core::EntityModel::rotate(float angle_radian, const Core::Vector2f& pivot_point)
 {
-        _hitbox->rotate(angle, pivot_point);
+        _hitbox->rotate(angle_radian, pivot_point);
         for (auto& raycast : _raycasts) {
-                raycast->rotate(angle, pivot_point);
+                raycast->rotate(angle_radian, pivot_point);
         }
 
-        _rotation -= angle;
-        CoreUtils::fDegreeMod(_rotation);
-
-        float angle_radian = CoreUtils::toRadian(angle);
+        _rotation -= angle_radian;
         _position.rotate(angle_radian, pivot_point);
 }
 

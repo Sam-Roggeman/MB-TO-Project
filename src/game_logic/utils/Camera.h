@@ -26,7 +26,16 @@ public:
         Vector2f getPosition() const;
         void setPosition(const Vector2f& position);
 
+        Vector2f getCameraXBounderies() const;
+        Vector2f getCameraYBounderies() const;
+
         void setCameraBounderies(float x_min, float x_max, float y_min, float y_max);
+
+        float getCamerawidth() const;
+        float getCameraheight() const;
+
+        Vector2f getRepresentationXBounderies() const;
+        Vector2f getRepresentationYBounderies() const;
 
         void setRepresentationBounderies(float x_min, float x_max, float y_min, float y_max);
 
