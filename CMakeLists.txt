@@ -5,15 +5,20 @@ set(APP_EXE RacingSimulator)
 
 project(${APP_EXE})
 
+file(GLOB_RECURSE source_ai
+        src/Ai/*.cpp
+        src/Ai/*.h
+        )
+
 # Automata and grammars
 file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp
         src/AutomataAndGrammars/*.h
         )
-file(GLOB_RECURSE imageclasses
-        src/imageclasses/*.cpp
-        src/imageclasses/*.h
-        )
+	#file(GLOB_RECURSE imageclasses
+	#    src/imageclasses/*.cpp
+	#    src/imageclasses/*.h
+	#    )
 
 # Game representation
 file(GLOB_RECURSE source_game_representation
@@ -22,7 +27,7 @@ file(GLOB_RECURSE source_game_representation
         src/game_representation/*.h
         )
 
-add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${imageclasses})
+add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai} ) #${imageclasses})
 
 # Game logic static library
 file(GLOB_RECURSE source_game_logic
@@ -37,10 +42,10 @@ if(WIN32)
     link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
 endif()
 
-find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
+#find_package(OpenCV REQUIRED)
+#include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB) #${OpenCV_LIBS})
 
 # (Windows) Path to SFML library
 if(WIN32)

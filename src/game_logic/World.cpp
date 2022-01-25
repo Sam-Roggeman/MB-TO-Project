@@ -507,7 +507,7 @@ bool World::checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, co
         // lines are not parallel but do not intersect
         return false;
 }
-void World::initializeWalls(const std::string& inputname)
+/*void World::initializeWalls(const std::string& inputname)
 {
         imageProcessor imageProcessor{inputname};
         unsigned int brick_side = std::max(imageProcessor.getRows() / 25, 1u);
@@ -549,5 +549,5 @@ void World::initializeWalls(const std::string& inputname)
                         }
                 }
         }
-}
+}*/
 } // namespace Core

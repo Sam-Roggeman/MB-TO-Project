@@ -5,6 +5,7 @@
 #include "../utils/json.hpp"
 #include "EntityModel.h"
 #include <fstream>
+#include "../../Ai/FNN.h" //mohammed
 
 namespace Core {
 class Car : public EntityModel
@@ -26,6 +27,7 @@ private:
         float _min_traction;
         float _max_traction;
 
+        FFNeuralNetwork brain; //mohammed
 public:
         Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size);
         ~Car() = default;
