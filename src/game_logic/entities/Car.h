@@ -6,6 +6,7 @@
 #include "EntityModel.h"
 #include <fstream>
 #include "../../Ai/FNN.h" //mohammed
+#include "../../AutomataAndGrammars/SLR.h"
 
 namespace Core {
 class Car : public EntityModel

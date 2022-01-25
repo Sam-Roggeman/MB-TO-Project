@@ -47,6 +47,7 @@
     {"head": "HH", "body": ["7","HH"]},
     {"head": "HH", "body": ["8","HH"]},
     {"head": "HH", "body": ["9","HH"]},
+    {"head": "HH", "body": [".","HH"]},
     {"head": "HH", "body": ["<"]},
 
     {"head": "AAA", "body": ["A","AAA"]},

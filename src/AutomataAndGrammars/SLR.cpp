@@ -179,8 +179,9 @@ void state::toDot(std::ostream& os) const
         }
 }
 
-SLR::SLR(const CFG& G)
+SLR::SLR(const std::string& filename)
 {
+        CFG G = CFG(filename);
         T = G.getT();
         V = G.getV();
         production aug_prod{};
@@ -603,13 +604,13 @@ void SLR::toDot(std::ostream& os)
         os << "}" << std::endl;
 }
 
-bool SLR::ValidCheck( std::string& in,  std::string& head) {
+bool SLR::ValidCheck( std::string& in,  const std::string& head) {
         std::string input = in;
         std::string s = "i0";
 
         state * staat = &states[s];
 
-        if(head == "kleur"){
+        if(head == "Color"){
                 for(auto& st:staat->GetEdge()){
                         if(st.GetInput() == "l"){
                                 staat = st.GetTo();
@@ -618,7 +619,7 @@ bool SLR::ValidCheck( std::string& in,  std::string& head) {
                 }
         }
 
-        else{
+        else if (head != "Sprite"){
                 for(auto& st:staat->GetEdge()){
                         if(st.GetInput() == "n"){
                                 staat = st.GetTo();
@@ -660,7 +661,7 @@ bool SLR::ValidCheck( std::string& in,  std::string& head) {
         }
 }
 
-void SLR::ParseXML(std::vector<std::pair<std::string,std::string>>& values, const std::string& filename) {
+void SLR::ParseXML(std::map<std::string,std::string>& values, const std::string& filename) {
 
         std::ifstream infile(filename);
         std::string line;
@@ -697,13 +698,12 @@ void SLR::ParseXML(std::vector<std::pair<std::string,std::string>>& values, cons
                                         value +=  line[i];
                                 }
                         }
-                        auto pair = std::make_pair(head,value);
-                        values.push_back(pair);
+                        values[head] = value;
                 }
         }
 
         for(auto& pair:values){
-                if(pair.first == "kleur" && pair.second.size() != 7){
+                if(pair.first == "Color" && pair.second.size() != 7){
                         std::cerr << "More then 6 numbers/letters for color" << std::endl;
                 }
         }

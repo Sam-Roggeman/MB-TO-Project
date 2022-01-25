@@ -7,7 +7,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "assets/car_presets/preset1.json");
+        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "test.xml", "test2.xml");
         _player->setInputMap(_user_input_map);
 
         generateGroundTiles(2);
@@ -507,47 +507,47 @@ bool World::checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, co
         // lines are not parallel but do not intersect
         return false;
 }
-/*void World::initializeWalls(const std::string& inputname)
-{
-        imageProcessor imageProcessor{inputname};
-        unsigned int brick_side = std::max(imageProcessor.getRows() / 25, 1u);
-        unsigned int wallpixels{};
-        Core::Vector2f wall_pos{};
-        Core::Vector2f wall_size{};
-
-        unsigned threshold = (unsigned int)((float)brick_side * (float)brick_side) / 2;
-        for (unsigned int brickrow = 0; brickrow < imageProcessor.size() - brick_side; brickrow += brick_side) {
-                for (unsigned int brick_col = 0; brick_col < imageProcessor.at(brickrow).size() - brick_side;
-                     brick_col += brick_side) {
-                        wallpixels = 0;
-                        for (unsigned int row = 0; row < brick_side; row++) {
-                                for (unsigned int col = 0; col < brick_side; col++) {
-                                        if (imageProcessor.isWall(row + brickrow, col + brick_col)) {
-                                                wallpixels++;
-                                        }
-                                }
-                        }
-                        if (wallpixels >= threshold) {
-                                wall_size = Core::Vector2f((float)brick_side, (float)brick_side);
-                                wall_pos = Core::Vector2f((float)brickrow + (float)brick_side / 2,
-                                                          (float)brick_col + (float)brick_side / 2);
-                                Vector2f wall_new_pos =
-                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-                                                               (float)imageProcessor.getRows(), 0.0f);
-
-                                std::cout << wall_pos << std::endl;
-                                std::cout << wall_new_pos << std::endl;
-
-                                std::cout << "**************" << std::endl;
-
-                                _walls.insert(_entity_model_creator->createWallModel(
-                                    _camera,
-                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-                                                               (float)imageProcessor.getRows(), 0.0f),
-                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
-                                                         (float)imageProcessor.getRows(), 0.0f)));
-                        }
-                }
-        }
-}*/
+//void World::initializeWalls(const std::string& inputname)
+//{
+//        imageProcessor imageProcessor{inputname};
+//        unsigned int brick_side = std::max(imageProcessor.getRows() / 25, 1u);
+//        unsigned int wallpixels{};
+//        Core::Vector2f wall_pos{};
+//        Core::Vector2f wall_size{};
+//
+//        unsigned threshold = (unsigned int)((float)brick_side * (float)brick_side) / 2;
+//        for (unsigned int brickrow = 0; brickrow < imageProcessor.size() - brick_side; brickrow += brick_side) {
+//                for (unsigned int brick_col = 0; brick_col < imageProcessor.at(brickrow).size() - brick_side;
+//                     brick_col += brick_side) {
+//                        wallpixels = 0;
+//                        for (unsigned int row = 0; row < brick_side; row++) {
+//                                for (unsigned int col = 0; col < brick_side; col++) {
+//                                        if (imageProcessor.isWall(row + brickrow, col + brick_col)) {
+//                                                wallpixels++;
+//                                        }
+//                                }
+//                        }
+//                        if (wallpixels >= threshold) {
+//                                wall_size = Core::Vector2f((float)brick_side, (float)brick_side);
+//                                wall_pos = Core::Vector2f((float)brickrow + (float)brick_side / 2,
+//                                                          (float)brick_col + (float)brick_side / 2);
+//                                Vector2f wall_new_pos =
+//                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+//                                                               (float)imageProcessor.getRows(), 0.0f);
+//
+//                                std::cout << wall_pos << std::endl;
+//                                std::cout << wall_new_pos << std::endl;
+//
+//                                std::cout << "**************" << std::endl;
+//
+//                                _walls.insert(_entity_model_creator->createWallModel(
+//                                    _camera,
+//                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+//                                                               (float)imageProcessor.getRows(), 0.0f),
+//                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
+//                                                         (float)imageProcessor.getRows(), 0.0f)));
+//                        }
+//                }
+//        }
+//}
 } // namespace Core

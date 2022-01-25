@@ -26,7 +26,8 @@ public:
         virtual std::shared_ptr<Core::Car> createCarModel(std::shared_ptr<Core::Camera> camera,
                                                           const Core::Vector2f& position,
                                                           const Core::Vector2f& view_size,
-                                                          const std::string& preset_file_path) = 0;
+                                                          const std::string& preset_file_path,
+                                                          const std::string& preset_file_path2) = 0;
 
         virtual std::shared_ptr<Core::GroundTile> createGroundTileModel(std::shared_ptr<Core::Camera> camera,
                                                                         const Core::Vector2f& position,

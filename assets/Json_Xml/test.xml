@@ -1,0 +1,14 @@
+<Car>
+    <Color> 8557F4 </Color>
+    <mass> 1500 </mass>>
+    <acceleration_power> 2000 </acceleration_power>
+    <reverse_acceleration_power> 1000 </reverse_acceleration_power>
+    <braking_power> 6000 </braking_power>
+    <steering_angle> 45 </steering_angle>
+    <wheel_base> 0.9 </wheel_base>
+    <drag> 0.015 </drag>
+    <friction> 0.2 </friction>
+    <max_slip_velocity> 4 </max_slip_velocity>
+    <min_traction> 1 </min_traction>
+    <max_traction> 0.05 </max_traction>
+</Car>
