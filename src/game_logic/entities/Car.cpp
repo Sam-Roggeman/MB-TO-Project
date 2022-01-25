@@ -38,11 +38,11 @@ void Core::Car::update(double t, float dt)
 //                        maxIndex = i;
 //                }
 //        }
-        _input_map->up = 3;
-        //std::cout << neural_outputs[0] << std::endl;
-        _input_map->down = neural_outputs[1];
-        _input_map->right = neural_outputs[2];
-        _input_map->left = neural_outputs[3];
+//        _input_map->up = 1;
+//        //std::cout << neural_outputs[0] << std::endl;
+//        _input_map->down = neural_outputs[1];
+//        _input_map->right = neural_outputs[2];
+//        _input_map->left = neural_outputs[3];
 
         // reset
         if (_input_map->reset) {
@@ -57,6 +57,8 @@ void Core::Car::update(double t, float dt)
         if (!going_forwards) {
                 direction_sign = -1;
         }
+
+        _velocity = direction_sign * _velocity.length() * _direction;
 
         // friction & drag
         Vector2f friction_force = _velocity * _friction;
