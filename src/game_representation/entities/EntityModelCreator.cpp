@@ -1,9 +1,7 @@
 #include "EntityModelCreator.h"
 #include "PlayerView.h"
 
-Representation::EntityModelCreator::EntityModelCreator()
-{
-}
+Representation::EntityModelCreator::EntityModelCreator() {}
 
 std::shared_ptr<sf::Texture> Representation::EntityModelCreator::loadTexture(const std::string& file_path)
 {
@@ -112,7 +110,11 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         return car_model;
 }
 
-std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size, const std::string& preset_file_path,const std::string& preset_file_path2)
+std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera,
+                                                                              const Core::Vector2f& position,
+                                                                              const Core::Vector2f& view_size,
+                                                                              const std::string& preset_file_path,
+                                                                              const std::string& preset_file_path2)
 {
         // entity model
         std::shared_ptr<Core::Car> car_model(new Core::Car(camera, position, view_size));
@@ -139,9 +141,9 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         _car_views.push_back(car_view_weak);
 
         // entity view textures & animations
-        std::vector<std::pair<std::string,std::string>> values;
-        SLR slr = SLR("../../Json_Xml/Xml2.json");
-        slr.ParseXML(values,preset_file_path2);
+        std::map<std::string, std::string> values;
+        SLR slr = SLR("assets/Json_Xml/Xml2.json");
+        slr.ParseXML(values, preset_file_path2);
 
         car_view->addTexture(loadTexture("assets/sprites/car/" + values["Sprite"]));
 

@@ -5,12 +5,12 @@
 
 int srltest(int argc, char* argv[])
 {
-        CFG cfg = CFG("../Inputfiles/SLR.json");
-        SLR slr = SLR(cfg);
-        //        slr.toDot(std::cout);
-        slr.TableFilling();
-
-        //        std::cout << slr;
-        slr.PrintTable();
+//        CFG cfg = CFG("../Inputfiles/SLR.json");
+//        SLR slr = SLR(cfg);
+//        //        slr.toDot(std::cout);
+//        slr.TableFilling();
+//
+//        //        std::cout << slr;
+//        slr.PrintTable();
         return 0;
 }

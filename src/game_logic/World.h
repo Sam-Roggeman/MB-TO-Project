@@ -1,7 +1,7 @@
 #ifndef PHYSICS_ENGINE_WORLD_H
 #define PHYSICS_ENGINE_WORLD_H
 
-#include "../imageclasses/imageProcessor.h"
+//#include "../imageclasses/imageProcessor.h"
 #include "data_structures/Raycast.h"
 #include "entities/IEntityModelCreator.h"
 #include "entities/Wall.h"
