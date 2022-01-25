@@ -121,7 +121,7 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         car_model->getHitbox()->setRectangleHitbox(view_size.x / 2.5f, view_size.y * 0.85f);
         car_model->setStatic(false);
 
-        car_model->loadPhysicsPreset(preset_file_path2);
+        car_model->loadPhysicsPreset(preset_file_path);
 
         unsigned int raycast_count = 5;
 

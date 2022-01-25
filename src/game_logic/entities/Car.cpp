@@ -58,6 +58,7 @@ void Core::Car::update(double t, float dt)
 
         // acceleration
         if (_input_map->up > 0) {
+//                _force += _direction * _acceleration_power * _input_map->up;
                 if (going_forwards) {
                         _force += _direction * _acceleration_power * _input_map->up;
                 } else {
@@ -66,6 +67,7 @@ void Core::Car::update(double t, float dt)
                 }
         }
         if (_input_map->down > 0) {
+//                _force -= _direction * _reverse_acceleration_power * _input_map->down;
                 if (!going_forwards) {
                         _force -= _direction * _reverse_acceleration_power * _input_map->down;
                 } else {
@@ -73,8 +75,6 @@ void Core::Car::update(double t, float dt)
                         _force -= _direction * _braking_power * _input_map->down;
                 }
         }
-
-        std::cout << _force << std::endl;
 
         // raycasts
         for (auto& raycast : _raycasts) {
@@ -120,13 +120,11 @@ void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
 
         slr.ParseXML(values,preset_file_path);
 
-        std::cout << values["acceleration_power"] << std::endl;
-
         _acceleration_power = std::stof(values["acceleration_power"]);
         _reverse_acceleration_power = std::stof(values["reverse_acceleration_power"]);
         _braking_power = std::stof(values["braking_power"]);
 
-        _steering_angle = std::stof(values["steering_angle"]);
+        _steering_angle = CoreUtils::toRadian(std::stof(values["steering_angle"]));
         _wheel_base = _view_size.y * std::stof(values["wheel_base"]);
 
         _drag = std::stof(values["drag"]);
