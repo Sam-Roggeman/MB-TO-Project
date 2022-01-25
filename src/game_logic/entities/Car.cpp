@@ -112,23 +112,25 @@ void Core::Car::steer(float angle_radian, float direction_sign, float dt)
 
 void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
 {
-        std::ifstream input(preset_file_path);
-        nlohmann::json j;
-        input >> j;
 
-        _acceleration_power = j.find("acceleration_power")->get<float>();
-        _reverse_acceleration_power = j.find("reverse_acceleration_power")->get<float>();
-        _braking_power = j.find("braking_power")->get<float>();
+        std::vector<std::pair<std::string,std::string>> values;
+        SLR slr = SLR("../../Json_Xml/Xml.json");
 
-        _steering_angle = CoreUtils::toRadian(j.find("steering_angle")->get<float>());
-        _wheel_base = _view_size.y * j.find("wheel_base")->get<float>();
+        slr.ParseXML(values,preset_file_path);
 
-        _drag = j.find("drag")->get<float>();
-        _friction = j.find("friction")->get<float>();
+        _acceleration_power = values["acceleration_power"];
+        _reverse_acceleration_power = values["reverse_acceleration_power"];
+        _braking_power = values["braking_power"];
 
-        _max_slip_velocity = j.find("max_slip_velocity")->get<float>();
-        _min_traction = j.find("min_traction")->get<float>();
-        _max_traction = j.find("max_traction")->get<float>();
+        _steering_angle = values["steering_angle"];
+        _wheel_base = _view_size.y * values["wheel_base"];
+
+        _drag = values["drag"];
+        _friction = values["friction"];
+
+        _max_slip_velocity = values["max_slip_velocity"];
+        _min_traction = values["min_traction"];
+        _max_traction = values["max_traction"]);
 }
 
 float Core::Car::getAccelerationPower() const { return _acceleration_power; }

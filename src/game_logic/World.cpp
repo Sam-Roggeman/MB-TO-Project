@@ -7,7 +7,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "assets/car_presets/preset1.json");
+        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "test.xml", "test2.xml");
         _player->setInputMap(_user_input_map);
 
         generateGroundTiles(2);

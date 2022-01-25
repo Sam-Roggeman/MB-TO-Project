@@ -5,6 +5,7 @@
 #include "../utils/json.hpp"
 #include "EntityModel.h"
 #include <fstream>
+#include "../../AutomataAndGrammars/SLR.h"
 
 namespace Core {
 class Car : public EntityModel

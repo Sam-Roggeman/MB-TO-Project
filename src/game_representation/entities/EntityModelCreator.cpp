@@ -112,14 +112,14 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         return car_model;
 }
 
-std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size, const std::string& preset_file_path)
+std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size, const std::string& preset_file_path,const std::string& preset_file_path2)
 {
         // entity model
         std::shared_ptr<Core::Car> car_model(new Core::Car(camera, position, view_size));
         car_model->getHitbox()->setRectangleHitbox(view_size.x / 2.5f, view_size.y * 0.85f);
         car_model->setStatic(false);
 
-        car_model->loadPhysicsPreset(preset_file_path);
+        car_model->loadPhysicsPreset(preset_file_path2);
 
         unsigned int raycast_count = 5;
 
@@ -139,13 +139,11 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         _car_views.push_back(car_view_weak);
 
         // entity view textures & animations
-        std::ifstream input(preset_file_path);
-        nlohmann::json j;
-        input >> j;
+        std::vector<std::pair<std::string,std::string>> values;
+        SLR slr = SLR("../../Json_Xml/Xml2.json");
+        slr.ParseXML(values,preset_file_path2);
 
-        std::string sprite = j.find("sprite")->get<std::string>();
-
-        car_view->addTexture(loadTexture("assets/sprites/car/" + sprite));
+        car_view->addTexture(loadTexture("assets/sprites/car/" + values["Sprite"]));
 
         car_view->setTexture(0);
 

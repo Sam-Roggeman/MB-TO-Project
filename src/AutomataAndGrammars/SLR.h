@@ -100,7 +100,7 @@ class SLR
         Table table = Table();
 
 public:
-        explicit SLR(const CFG& cfg);
+        explicit SLR(const std::string& filename);
 
         void print(std::ostream& ostream) const;
 
@@ -110,9 +110,9 @@ public:
 
         void toDot(std::ostream& os);
 
-        bool ValidCheck( std::string& input, std::string& head);
+        bool ValidCheck( std::string& input, const std::string& head);
 
-        void ParseXML(std::vector<std::pair<std::string,std::string>> &values, const std::string& filename);
+        void ParseXML(std::map<std::string,std::string>& values, const std::string& filename);
 
 private:
         std::vector<production> closure(std::vector<production>& included, std::set<std::string>& found,
@@ -138,25 +138,25 @@ private:
         void sort();
 
         /**
-     * creates and initializes a new state which
-     * @param from
-     * @param input
-     * @return
+ * creates and initializes a new state which
+ * @param from
+ * @param input
+ * @return
          */
         state createState(const state& from, const std::string& input);
 
         /**
-     * prints the slr
-     * @param os outstream
-     * @param slr the slr to output
-     * @return
+ * prints the slr
+ * @param os outstream
+ * @param slr the slr to output
+ * @return
          */
         friend std::ostream& operator<<(std::ostream& os, const SLR& slr);
 
         /**
-     * checks if an equal state already exists (looks at productions and not name)
-     * @param state1 state to compare
-     * @return a pointer to the equal state if exists, else nullptr
+ * checks if an equal state already exists (looks at productions and not name)
+ * @param state1 state to compare
+ * @return a pointer to the equal state if exists, else nullptr
          */
         const state* getEqualState(const state& state1);
 };
