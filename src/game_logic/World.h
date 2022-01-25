@@ -38,13 +38,13 @@ public:
         std::shared_ptr<InputMap> getInputMap();
 
 private:
-        void generateGroundTiles(float scale=1);
+        void generateGroundTiles(float scale = 1);
 
         void updateEntities(double t, float dt);
 
         void checkCollisions();
 
-        //void initializeWalls(const std::string& inputname);
+        // void initializeWalls(const std::string& inputname);
 
         static bool checkCollision(const std::shared_ptr<EntityModel>& entity1,
                                    const std::shared_ptr<EntityModel>& entity2, bool collision_response = true);
@@ -65,9 +65,13 @@ private:
                                                   const std::shared_ptr<EntityModel>& entity2, bool collision_response,
                                                   Vector2f& mtv);
 
-        static bool checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& l2p1,
-                                          const Vector2f& l2p2, Vector2f& intersection1, Vector2f& intersection2,
-                                          bool& is_collinear);
+        static bool checkLinesegmentLinesegmentIntersection(const Vector2f& l1p1, const Vector2f& l1p2,
+                                                            const Vector2f& l2p1, const Vector2f& l2p2,
+                                                            Vector2f& intersection1, Vector2f& intersection2,
+                                                            bool& is_collinear);
+
+        static bool checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
+                                                       float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice);
 };
 } // namespace Core
 

@@ -161,6 +161,16 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         bool collided_once = false;
         bool collided_twice = false;
 
+        bool intersected{false};
+        Vector2f intersection1;
+        Vector2f intersection2;
+
+        intersected = checkLinesegmentCircleIntersection(
+            raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
+            entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
+
+        if (intersected && !collided_twice) collided_once = true;
+
         for (int i = 0; i < points.size(); i++) {
                 Vector2f point1 = points[i];
                 Vector2f point2;
@@ -172,11 +182,9 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
 
                 bool is_collinear;
 
-                Vector2f intersection1;
-                Vector2f intersection2;
-
-                bool intersected = checkLineIntersection(raycast->getOrigin(), raycast->getEndpoint(), point1, point2,
-                                                         intersection1, intersection2, is_collinear);
+                intersected = checkLinesegmentLinesegmentIntersection(
+                    raycast->getOrigin(), raycast->getEndpoint(), point1, point2, intersection1, intersection2,
+                    is_collinear);
 
                 if (!intersected)
                         continue;
@@ -196,6 +204,7 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
                         collided_once = true;
                 }
         }
+
         if (collided_once) {
                 raycast->setCollisionPoint(collision_point1);
         } else if (collided_twice) {
@@ -437,9 +446,9 @@ bool World::checkCollisionCircleAndCircle(const std::shared_ptr<EntityModel>& en
         return true;
 }
 
-bool World::checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& l2p1,
-                                  const Vector2f& l2p2, Vector2f& intersection1, Vector2f& intersection2,
-                                  bool& is_collinear)
+bool World::checkLinesegmentLinesegmentIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& l2p1,
+                                                    const Vector2f& l2p2, Vector2f& intersection1,
+                                                    Vector2f& intersection2, bool& is_collinear)
 {
         const Vector2f& p = l1p1;
         const Vector2f& q = l2p1;
@@ -508,6 +517,13 @@ bool World::checkLineIntersection(const Vector2f& l1p1, const Vector2f& l1p2, co
         // lines are not parallel but do not intersect
         return false;
 }
+
+bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
+                                               float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice)
+{
+        return false;
+}
+
 // void World::initializeWalls(const std::string& inputname)
 //{
 //         imageProcessor imageProcessor{inputname};
