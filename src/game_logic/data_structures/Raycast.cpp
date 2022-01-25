@@ -29,24 +29,24 @@ void Core::Raycast::move(const Core::Vector2f& vector)
 
 void Core::Raycast::rotate(float angle_radian)
 {
-        _endpoint.rotate(angle_radian, _origin);
+        _endpoint = _endpoint.rotated(angle_radian, _origin);
 }
 
 void Core::Raycast::rotate(float angle_radian, const Core::Vector2f& pivot)
 {
-        _endpoint.rotate(angle_radian, pivot);
-        _origin.rotate(angle_radian, pivot);
+        _endpoint = _endpoint.rotated(angle_radian, pivot);
+        _origin = _origin.rotated(angle_radian, pivot);
 }
 
 void Core::Raycast::scale(const Core::Vector2f& scale)
 {
-        _endpoint.scale(scale, _origin);
+        _endpoint = _endpoint.scaled(scale, _origin);
 }
 
 void Core::Raycast::scale(const Core::Vector2f& scale, const Core::Vector2f& pivot)
 {
-        _origin.scale(scale, pivot);
-        _endpoint.scale(scale, pivot);
+        _origin = _origin.scaled(scale, pivot);
+        _endpoint = _endpoint.scaled(scale, pivot);
 }
 
 Core::Vector2f Core::Raycast::getDirection() const

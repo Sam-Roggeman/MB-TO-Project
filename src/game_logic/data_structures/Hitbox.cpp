@@ -37,33 +37,33 @@ void Core::Hitbox::move(const Core::Vector2f& vector)
 void Core::Hitbox::rotate(float angle_radian)
 {
         for (auto& point : _points) {
-                point.rotate(angle_radian, _origin);
+                point = point.rotated(angle_radian, _origin);
         }
 }
 
 void Core::Hitbox::rotate(float angle_radian, const Vector2f& pivot)
 {
-        _origin.rotate(angle_radian, pivot);
+        _origin = _origin.rotated(angle_radian, pivot);
 
         for (auto& point : _points) {
-                point.rotate(angle_radian, pivot);
+                point = point.rotated(angle_radian, pivot);
         }
 }
 
 void Core::Hitbox::scale(const Core::Vector2f& scale)
 {
         for (auto& point : _points) {
-                point.scale(scale, _origin);
+                point = point.scaled(scale, _origin);
         }
         _radius = _radius * (scale.x + scale.y) / 2;
 }
 
 void Core::Hitbox::scale(const Vector2f& scale, const Vector2f& pivot)
 {
-        _origin.scale(scale, pivot);
+        _origin = _origin.scaled(scale, pivot);
 
         for (auto& point : _points) {
-                point.scale(scale, pivot);
+                point = point.scaled(scale, pivot);
         }
         _radius = _radius * (scale.x + scale.y) / 2;
 }

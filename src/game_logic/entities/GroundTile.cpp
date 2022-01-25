@@ -6,5 +6,5 @@ Core::GroundTile::GroundTile(std::shared_ptr<Core::Camera> camera, const Core::V
 {
 }
 void Core::GroundTile::update(double t, float dt) {
-        EntityModel::update(t, dt);
+        notifyObservers();
 }

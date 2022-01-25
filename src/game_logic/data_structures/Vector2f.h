@@ -71,13 +71,19 @@ public:
 
         void normalize();
 
+        Vector2f normalized();
+
         float dotProduct(const Vector2f& other) const;
 
         float crossProduct(const Vector2f& other) const;
 
-        Vector2f& rotate(float angle_radian, const Vector2f& pivot_point);
+        void rotate(float angle_radian, const Vector2f& pivot_point={0, 0});
 
-        Vector2f& scale(const Vector2f& scale, const Vector2f& pivot_point);
+        Vector2f rotated(float angle_radian, const Vector2f& pivot_point={0, 0}) const;
+
+        void scale(const Vector2f& scale, const Vector2f& pivot_point={0, 0});
+
+        Vector2f scaled(const Vector2f& scale, const Vector2f& pivot_point={0, 0}) const;
 };
 } // namespace Core
 

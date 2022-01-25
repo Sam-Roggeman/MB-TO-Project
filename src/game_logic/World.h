@@ -39,7 +39,7 @@ public:
         std::shared_ptr<InputMap> getInputMap();
 
 private:
-        void generateGroundTiles();
+        void generateGroundTiles(float scale=1);
 
         void updateEntities(double t, float dt);
 

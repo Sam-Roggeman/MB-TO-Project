@@ -1,0 +1,14 @@
+{
+  "mass": 1500,
+  "acceleration_power": 2000,
+  "reverse_acceleration_power": 1000,
+  "braking_power": 6000,
+  "steering_angle": 45,
+  "wheel_base": 0.9,
+  "drag": 0.015,
+  "friction": 0.2,
+  "max_slip_velocity": 4,
+  "min_traction": 1,
+  "max_traction": 0.05,
+  "sprite": "Car.png"
+}

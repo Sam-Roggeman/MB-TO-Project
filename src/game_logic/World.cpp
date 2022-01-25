@@ -7,20 +7,12 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 1}, {0.2, 0.2});
+        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "assets/car_presets/preset1.json");
         _player->setInputMap(_user_input_map);
 
-        std::shared_ptr<Wall> wall1 = _entity_model_creator->createWallModel(_camera, {1, 0.5}, {0.8, 0.8});
-        _walls.insert(wall1);
+        generateGroundTiles(2);
 
-        generateGroundTiles();
-
-        //        initializeWalls("assets/maps/Untitled2.png");
-        //        std::cout << _walls.size();
-
-        Vector2f point = {0, 1};
-        point.rotate(CoreUtils::toRadian(90), {0, 0});
-        std::cout << point;
+//        initializeWalls("assets/maps/Untitled2.png");
 }
 
 World::~World() = default;
@@ -28,27 +20,6 @@ World::~World() = default;
 void World::update(double t, float dt)
 {
         // logic
-        if (!_user_input_map->custom4) {
-                _walls.begin()->get()->rotate(CoreUtils::toRadian(45) * Stopwatch::getInstance().getPhysicsDeltaTime());
-                float new_scale = static_cast<float>(std::cos(t) / 2) + 1.f;
-                _walls.begin()->get()->setScale({new_scale, new_scale});
-        }
-
-        // game speed
-        if (_user_input_map->custom1) {
-                Stopwatch::getInstance().setPhysicsSpeed(10);
-        }
-        if (_user_input_map->custom2) {
-                Stopwatch::getInstance().setPhysicsSpeed(0.1);
-        }
-        if (_user_input_map->custom3) {
-                Stopwatch::getInstance().setPhysicsSpeed(1);
-        }
-
-        for (auto& raycast : _player->getRaycasts()) {
-                float lengthToObstacle =
-                    (raycast->isActivated() ? (raycast->getOrigin() - raycast->getCollisionPoint()).length() : 1.3f);
-        }
 
         // updates
         updateEntities(t, dt);
@@ -59,13 +30,13 @@ void World::update(double t, float dt)
 
 std::shared_ptr<InputMap> World::getInputMap() { return _user_input_map; }
 
-void World::generateGroundTiles()
+void World::generateGroundTiles(float scale)
 {
         // ground tile size
         Vector2f size(1, 1);
 
-        float width = _camera->getCamerawidth() * 2;
-        float height = _camera->getCameraheight() * 2;
+        float width = _camera->getCamerawidth() * scale;
+        float height = _camera->getCameraheight() * scale;
 
         Vector2f current_position = _camera->getPosition() - Vector2f(width/2, height/2);
         float y_reset = current_position.y;

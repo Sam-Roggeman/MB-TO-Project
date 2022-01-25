@@ -6,34 +6,22 @@ Core::EntityModel::EntityModel(std::shared_ptr<Core::Camera> camera, const Core:
       _input_map(new InputMap()), _is_static(true)
 {
         _hitbox = std::make_shared<Core::Hitbox>(_position, _view_size.x, _view_size.y);
-        _max_velocity = {1, 1};
 }
 
 void Core::EntityModel::update(double t, float dt)
 {
-        // _force acceleration
+        // force acceleration
         _acceleration += _force / _mass;
 
         Vector2f move_velocity = _velocity + dt * _acceleration / 2;
-
-        // todo
-        //        // clamp velocity
-        //        move_velocity = {std::clamp(move_velocity.x, -_max_velocity.x, _max_velocity.x),
-        //                         std::clamp(move_velocity.y, -_max_velocity.y, _max_velocity.y)};
 
         // position += timestep * (velocity + timestep * acceleration / 2)
         move(dt * move_velocity);
         _velocity += dt * _acceleration;
 
-        // drag todo
-        float velocity_length = _velocity.length();
-        if (velocity_length < 0.5 || velocity_length > -0.5) {
-                _velocity = _velocity - (_drag.x * dt) * _velocity;
-        } else if (velocity_length >= 0.5 || velocity_length <= -0.5) {
-                _velocity = (_velocity - (_drag.x * dt)) - _mass * (static_cast<float>(std::pow(velocity_length, 2)));
-        } else if (_velocity.x < 1.e-3f && _velocity.y < 1.e-3f) {
-                _velocity = {0, 0};
-        }
+        // remove small velocities
+        if (_velocity.x < 1.e-2f && _velocity.x > -1.e-2f) _velocity.x = 0;
+        if (_velocity.y < 1.e-2f && _velocity.y > -1.e-2f) _velocity.y = 0;
 
         // reset forces/accelerations
         _force = {0, 0};
@@ -70,11 +58,8 @@ float Core::EntityModel::getRotation() const { return _rotation; }
 
 void Core::EntityModel::setRotation(float angle_radian)
 {
-        _hitbox->rotate(angle_radian - _rotation, _position);
-        for (auto& raycast : _raycasts) {
-                raycast->rotate(angle_radian - _rotation, _position);
-        }
-        _rotation = angle_radian;
+        rotate(_rotation);
+        rotate(angle_radian);
 }
 
 void Core::EntityModel::rotate(float angle_radian)
@@ -84,6 +69,7 @@ void Core::EntityModel::rotate(float angle_radian)
                 raycast->rotate(angle_radian, _position);
         }
         _rotation -= angle_radian;
+        CoreUtils::fRadianMod(_rotation);
 }
 
 void Core::EntityModel::rotate(float angle_radian, const Core::Vector2f& pivot_point)
@@ -94,7 +80,8 @@ void Core::EntityModel::rotate(float angle_radian, const Core::Vector2f& pivot_p
         }
 
         _rotation -= angle_radian;
-        _position.rotate(angle_radian, pivot_point);
+        CoreUtils::fRadianMod(_rotation);
+        _position = _position.rotated(angle_radian, pivot_point);
 }
 
 Core::Vector2f Core::EntityModel::getScale() const { return _scale; }
@@ -126,17 +113,9 @@ float Core::EntityModel::getMass() const { return _mass; }
 
 void Core::EntityModel::setMass(float mass) { _mass = mass; }
 
-Core::Vector2f Core::EntityModel::getMaxVelocity() const { return _max_velocity; }
-
-void Core::EntityModel::setMaxVelocity(const Vector2f& max_velocity) { _max_velocity = max_velocity; }
-
 Core::Vector2f Core::EntityModel::getAcceleration() const { return _acceleration; }
 
 void Core::EntityModel::setAcceleration(const Vector2f& acceleration) { _acceleration = acceleration; }
-
-Core::Vector2f Core::EntityModel::getDrag() const { return _drag; }
-
-void Core::EntityModel::setDrag(const Vector2f& drag) { _drag = drag; }
 
 Core::Vector2f Core::EntityModel::getVelocity() const { return _velocity; }
 

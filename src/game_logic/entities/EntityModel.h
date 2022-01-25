@@ -24,12 +24,10 @@ protected:
         float _rotation;
         Vector2f _scale;
 
-        Vector2f _force;
         float _mass;
+        Vector2f _force;
         Vector2f _velocity;
-        Vector2f _max_velocity;
         Vector2f _acceleration;
-        Vector2f _drag;
 
         std::shared_ptr<Hitbox> _hitbox;
         bool _is_static;
@@ -83,17 +81,9 @@ public:
 
         virtual void setVelocity(const Vector2f& velocity);
 
-        virtual Vector2f getMaxVelocity() const;
-
-        virtual void setMaxVelocity(const Vector2f& max_velocity);
-
         virtual Vector2f getAcceleration() const;
 
         virtual void setAcceleration(const Vector2f& acceleration);
-
-        virtual Vector2f getDrag() const;
-
-        virtual void setDrag(const Vector2f& drag);
 
         virtual Vector2f getViewSize() const;
 

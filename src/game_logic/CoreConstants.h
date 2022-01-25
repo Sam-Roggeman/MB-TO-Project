@@ -3,9 +3,6 @@
 
 #include <limits>
 
-/**
- *
- */
 namespace CoreConstants {
 // bounderies
 extern const float world_x_min;

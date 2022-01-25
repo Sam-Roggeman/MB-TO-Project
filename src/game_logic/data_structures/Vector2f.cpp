@@ -126,42 +126,69 @@ void Core::Vector2f::normalize()
         y /= length;
 }
 
+Core::Vector2f Core::Vector2f::normalized()
+{
+      Vector2f new_vector = *this;
+      new_vector.normalize();
+      return new_vector;
+}
+
 float Core::Vector2f::dotProduct(const Vector2f& other) const { return x * other.x + y * other.y; }
 
 float Core::Vector2f::crossProduct(const Vector2f& other) const { return (x * other.y) - (y * other.x); }
 
-Core::Vector2f& Core::Vector2f::rotate(float angle_radian, const Vector2f& pivot_point)
-{
+void Core::Vector2f::rotate(float angle_radian, const Vector2f& pivot_point) {
         if (pivot_point == *this)
-                return *this;
-
+                return;
+        
         // translate point back to origin pivot
         *this -= pivot_point;
 
-        // rotate endpoint
+        // rotated endpoint
         Vector2f new_point = {this->x * std::cos(angle_radian) - this->y * std::sin(angle_radian),
                               this->x * std::sin(angle_radian) + this->y * std::cos(angle_radian)};
 
         // translate point back to pivot point
         *this = pivot_point + new_point;
-
-        return *this;
 }
 
-Core::Vector2f& Core::Vector2f::scale(const Core::Vector2f& scale, const Core::Vector2f& pivot_point)
+Core::Vector2f Core::Vector2f::rotated(float angle_radian, const Vector2f& pivot_point) const
 {
         if (pivot_point == *this)
                 return *this;
+        
+        Vector2f rotated_point = *this;
+
+        rotated_point.rotate(angle_radian, pivot_point);
+
+        return rotated_point;
+}
+
+void Core::Vector2f::scale(const Vector2f& scale, const Vector2f& pivot_point)
+{
+        if (pivot_point == *this)
+                return;
 
         // translate point back to origin pivot
         *this -= pivot_point;
 
-        // rotate endpoint
-        x *= scale.x;
-        y *= scale.y;
+        // scaled endpoint
+        this->x *= scale.x;
+        this->y *= scale.y;
 
         // translate point back to pivot point
         *this += pivot_point;
+}
 
-        return *this;
+Core::Vector2f Core::Vector2f::scaled(const Core::Vector2f& scale, const Core::Vector2f& pivot_point) const
+{
+
+        if (pivot_point == *this)
+                return *this;
+
+        Vector2f scaled_point = *this;
+
+        scaled_point.scale(scale, pivot_point);
+
+        return scaled_point;
 }

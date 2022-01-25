@@ -45,6 +45,7 @@ std::shared_ptr<Core::Doodle> Representation::EntityModelCreator::createDoodleMo
 
         // link model and view through the observer pattern
         player_model->addObserver(player_view);
+        player_model->notifyObservers();
 
         return player_model;
 }
@@ -68,6 +69,7 @@ std::shared_ptr<Core::Wall> Representation::EntityModelCreator::createWallModel(
 
         // link model and view through the observer pattern
         wall_model->addObserver(wall_view);
+        wall_model->notifyObservers();
 
         return wall_model;
 }
@@ -105,6 +107,51 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
 
         // link model and view through the observer pattern
         car_model->addObserver(car_view);
+        car_model->notifyObservers();
+
+        return car_model;
+}
+
+std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size, const std::string& preset_file_path)
+{
+        // entity model
+        std::shared_ptr<Core::Car> car_model(new Core::Car(camera, position, view_size));
+        car_model->getHitbox()->setRectangleHitbox(view_size.x / 2.5f, view_size.y * 0.85f);
+        car_model->setStatic(false);
+
+        car_model->loadPhysicsPreset(preset_file_path);
+
+        unsigned int raycast_count = 5;
+
+        float angle_step = M_PI / static_cast<float>(raycast_count - 1);
+        // raycasts
+        for (unsigned int i = 0; i < raycast_count; i++) {
+                Core::Vector2f direction{-1, 0};
+                std::shared_ptr<Core::Raycast> raycast =
+                    std::make_shared<Core::Raycast>(car_model->getPosition(), direction, 1.30);
+                raycast->rotate(-angle_step * static_cast<float>(i));
+                car_model->addRaycast(raycast);
+        }
+
+        // entity view
+        std::shared_ptr<Representation::EntityView> car_view(new Representation::EntityView(car_model));
+        std::weak_ptr<Representation::EntityView> car_view_weak = car_view;
+        _car_views.push_back(car_view_weak);
+
+        // entity view textures & animations
+        std::ifstream input(preset_file_path);
+        nlohmann::json j;
+        input >> j;
+
+        std::string sprite = j.find("sprite")->get<std::string>();
+
+        car_view->addTexture(loadTexture("assets/sprites/car/" + sprite));
+
+        car_view->setTexture(0);
+
+        // link model and view through the observer pattern
+        car_model->addObserver(car_view);
+        car_model->notifyObservers();
 
         return car_model;
 }
@@ -128,6 +175,7 @@ std::shared_ptr<Core::GroundTile> Representation::EntityModelCreator::createGrou
 
         // link model and view through the observer pattern
         ground_tile_model->addObserver(ground_tile_view);
+        ground_tile_model->notifyObservers();
 
         return ground_tile_model;
 }
