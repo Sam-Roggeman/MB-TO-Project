@@ -38,7 +38,7 @@ void Core::Car::update(double t, float dt)
 //                        maxIndex = i;
 //                }
 //        }
-        _input_map->up = 1;
+        _input_map->up = 3;
         //std::cout << neural_outputs[0] << std::endl;
         _input_map->down = neural_outputs[1];
         _input_map->right = neural_outputs[2];
