@@ -22,9 +22,9 @@ private:
         // entities
         std::shared_ptr<IEntityModelCreator> _entity_model_creator;
         std::shared_ptr<Car> _player;
-        std::set<std::shared_ptr<Car>> _cars;
-        std::set<std::shared_ptr<Wall>> _walls;
-        std::set<std::shared_ptr<GroundTile>> _ground_tiles;
+        std::vector<std::shared_ptr<Car>> _cars;
+        std::vector<std::shared_ptr<Wall>> _walls;
+        std::vector<std::shared_ptr<GroundTile>> _ground_tiles;
 
         std::shared_ptr<InputMap> _user_input_map;
 
