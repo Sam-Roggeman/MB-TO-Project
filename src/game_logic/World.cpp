@@ -11,9 +11,11 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                                                         "assets/Json_Xml/test2.xml");
         _player->setInputMap(_user_input_map);
 
+        _walls.push_back(_entity_model_creator->createWallModel(_camera, {1, 1}, {0.4, 0.4}));
+
         generateGroundTiles(2);
 
-        //        initializeWalls("assets/maps/Untitled2.png");
+//        initializeWalls("assets/maps/Untitled2.png");
 
         Vector2f intersection1;
         Vector2f intersection2;
@@ -93,14 +95,14 @@ void World::checkCollisions()
                         checkCollision(raycast, wall);
                 }
 
-                // cars
-                for (auto& car : _cars) {
-                        checkCollision(car, wall);
-
-                        for (auto& raycast : car->getRaycasts()) {
-                                checkCollision(raycast, wall);
-                        }
-                }
+//                // cars
+//                for (auto& car : _cars) {
+//                        checkCollision(car, wall);
+//
+//                        for (auto& raycast : car->getRaycasts()) {
+//                                checkCollision(raycast, wall);
+//                        }
+//                }
         }
 }
 
@@ -171,12 +173,16 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         Vector2f intersection1;
         Vector2f intersection2;
 
-        intersected = checkLinesegmentCircleIntersection(
-            raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
-            entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
+        // circle intersection
+        if (entity->getHitbox()->isCircle()) {
+                intersected = checkLinesegmentCircleIntersection(
+                    raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
+                    entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
 
-        if (intersected && !collided_twice) collided_once = true;
+                if (intersected && !collided_twice) collided_once = true;
+        }
 
+        // polygon intersection
         for (int i = 0; i < points.size(); i++) {
                 Vector2f point1 = points[i];
                 Vector2f point2;
@@ -187,6 +193,10 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
                         point2 = points[0];
 
                 bool is_collinear;
+
+                intersected = false;
+                intersection1.clear();
+                intersection2.clear();
 
                 intersected = checkLinesegmentLinesegmentIntersection(
                     raycast->getOrigin(), raycast->getEndpoint(), point1, point2, intersection1, intersection2,
@@ -212,16 +222,16 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         }
 
         if (collided_once) {
-                if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                if (!raycast->isActivated() || (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                         raycast->setCollisionPoint(collision_point1);
         } else if (collided_twice) {
                 // get the closest point
                 if ((collision_point1 - raycast->getOrigin()).length() <
                     (collision_point2 - raycast->getOrigin()).length()) {
-                        if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() || (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point1);
                 } else {
-                        if ((collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() || (collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point2);
                 }
         } else {
@@ -578,7 +588,7 @@ bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vecto
 //
 //                                 std::cout << "**************" << std::endl;
 //
-//                                 _walls.insert(_entity_model_creator->createWallModel(
+//                                 _walls.push_back(_entity_model_creator->createWallModel(
 //                                     _camera,
 //                                     _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
 //                                                                (float)imageProcessor.getRows(), 0.0f),

@@ -3,6 +3,7 @@
 
 #include "data_structures/Raycast.h"
 #include "entities/IEntityModelCreator.h"
+//#include "../imageclasses/imageProcessor.h"
 #include "entities/Wall.h"
 #include "utils/InputMap.h"
 #include "utils/Stopwatch.h"
@@ -44,7 +45,7 @@ private:
 
         void checkCollisions();
 
-        // void initializeWalls(const std::string& inputname);
+//         void initializeWalls(const std::string& inputname);
 
         static bool checkCollision(const std::shared_ptr<EntityModel>& entity1,
                                    const std::shared_ptr<EntityModel>& entity2, bool collision_response = true);
