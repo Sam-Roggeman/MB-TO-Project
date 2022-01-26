@@ -8,6 +8,7 @@ int gridtest(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
         //        srltest(argc, argv);
+        ios::sync_with_stdio(false);
         Representation::Game game;
         game.run();
         return 0;

@@ -5,6 +5,11 @@ set(APP_EXE RacingSimulator)
 
 project(${APP_EXE})
 
+file(GLOB_RECURSE source_ai
+        src/Ai/*.cpp
+        src/Ai/*.h
+        )
+
 # Automata and grammars
 file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp
@@ -59,7 +64,7 @@ endif ()
 
 # (Windows) Path to SFML library
 if (WIN32)
-    set(SFML_ROOT C:/SFML-2.5.1)
+    set(SFML_ROOT C:\\Users\\samro\\Documents\\School\\2021-2022\\AP\\AP_Project_2021-2022\\SFML-2.5.1_WIN\\)
 endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
@@ -71,8 +76,10 @@ endif ()
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
+# (Windows) Path to mingw64/bin
 if (WIN32)
-    set(MINGW_ROOT C:/msys64/mingw64/bin)
+    #    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
+    #    set(MINGW_ROOT C:/mingw64/bin/)
 endif ()
 
 # (Windows) Copy dlls to build
