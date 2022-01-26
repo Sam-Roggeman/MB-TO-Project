@@ -5,19 +5,24 @@ set(APP_EXE RacingSimulator)
 
 project(${APP_EXE})
 
-file(GLOB_RECURSE source_ai
-        src/Ai/*.cpp
-        src/Ai/*.h
-        )
-
 # Automata and grammars
 file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp
         src/AutomataAndGrammars/*.h
         )
-file(GLOB_RECURSE imageclasses
-        src/imageclasses/*.cpp
-        src/imageclasses/*.h
+
+if (WIN32)
+    # Image parser
+    file(GLOB_RECURSE imageclasses
+            src/imageclasses/*.cpp
+            src/imageclasses/*.h
+            )
+endif ()
+
+# Artificial intelligence
+file(GLOB_RECURSE source_ai
+        src/Ai/*.cpp
+        src/Ai/*.h
         )
 
 # Game representation
@@ -27,7 +32,11 @@ file(GLOB_RECURSE source_game_representation
         src/game_representation/*.h
         )
 
-add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai}) #${imageclasses})
+if (WIN32)
+    add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai} ${imageclasses})
+else ()
+    add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai}) #${imageclasses})
+endif ()
 
 # Game logic static library
 file(GLOB_RECURSE source_game_logic
@@ -40,16 +49,17 @@ ADD_LIBRARY(SOURCE_GAME_LOGIC_LIB STATIC ${source_game_logic})
 # OpenCV
 if (WIN32)
     link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
+    find_package(OpenCV REQUIRED)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+
+    TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB ${OpenCV_LIBS})
+else ()
+    TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB)
 endif ()
-
-find_package(OpenCV REQUIRED)
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB ${OpenCV_LIBS})
 
 # (Windows) Path to SFML library
 if (WIN32)
-    set(SFML_ROOT C:\\Users\\samro\\Documents\\School\\2021-2022\\AP\\AP_Project_2021-2022\\SFML-2.5.1_WIN\\)
+    set(SFML_ROOT C:/SFML-2.5.1)
 endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
@@ -61,19 +71,19 @@ endif ()
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
-# (Windows) Path to mingw64/bin
 if (WIN32)
-    #    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
-    #    set(MINGW_ROOT C:/mingw64/bin/)
+    set(MINGW_ROOT C:/msys64/mingw64/bin)
 endif ()
 
 # (Windows) Copy dlls to build
 if (WIN32)
+    # sfml
     file(GLOB BINARY_DEP_DLLS "${SFML_INCLUDE_DIR}/../bin/*.dll")
     file(COPY ${BINARY_DEP_DLLS} DESTINATION ${CMAKE_BINARY_DIR})
+    # mingw
     file(GLOB MINGW_DEP_DLLS "${MINGW_ROOT}/*.dll")
     file(COPY ${MINGW_DEP_DLLS} DESTINATION ${CMAKE_BINARY_DIR})
-    #opencv dlls
+    #opencv
     file(GLOB DLLS "${CMAKE_CURRENT_LIST_DIR}/libs/opencv-4.x/build/bin/*.dll")
     file(COPY ${DLLS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif ()

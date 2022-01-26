@@ -142,7 +142,7 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
 
         // entity view textures & animations
         std::map<std::string, std::string> values;
-        SLR slr = SLR("assets/Json_Xml/Xml2.json");
+        SLR slr = SLR("assets/SLR_json/Xml2.json");
         slr.ParseXML(values, preset_file_path2);
 
         car_view->addTexture(loadTexture("assets/sprites/car/" + values["Sprite"]));

@@ -25,11 +25,13 @@ Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& posit
 
 void Core::Car::update(double t, float dt)
 {
+        // neural network
         vector<float> raycast_lengths;
         for (auto& raycast : _raycasts) {
                 raycast_lengths.push_back((raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
         }
         vector<float> neural_outputs = brain(raycast_lengths);
+
 //        int maxIndex = 0;
 //        float max = 0;
 //        for(int i = 0; i < neural_outputs.size(); i++) {
@@ -38,8 +40,8 @@ void Core::Car::update(double t, float dt)
 //                        maxIndex = i;
 //                }
 //        }
-//        _input_map->up = 1;
-//        //std::cout << neural_outputs[0] << std::endl;
+
+//        _input_map->up = neural_outputs[0];
 //        _input_map->down = neural_outputs[1];
 //        _input_map->right = neural_outputs[2];
 //        _input_map->left = neural_outputs[3];
@@ -137,25 +139,28 @@ void Core::Car::steer(float angle_radian, float direction_sign, float dt)
 
 void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
 {
-
         std::map<std::string,std::string> values;
-        SLR slr = SLR("assets/Json_Xml/Xml.json");
+        SLR slr = SLR("assets/SLR_json/Xml.json");
 
         slr.ParseXML(values,preset_file_path);
 
-        _acceleration_power = std::stof(values["acceleration_power"]);
-        _reverse_acceleration_power = std::stof(values["reverse_acceleration_power"]);
-        _braking_power = std::stof(values["braking_power"]);
+        if (!values.empty()){
+                _acceleration_power = std::stof(values["acceleration_power"]);
+                _reverse_acceleration_power = std::stof(values["reverse_acceleration_power"]);
+                _braking_power = std::stof(values["braking_power"]);
 
-        _steering_angle = CoreUtils::toRadian(std::stof(values["steering_angle"]));
-        _wheel_base = _view_size.y * std::stof(values["wheel_base"]);
+                _steering_angle = CoreUtils::toRadian(std::stof(values["steering_angle"]));
+                _wheel_base = _view_size.y * std::stof(values["wheel_base"]);
 
-        _drag = std::stof(values["drag"]);
-        _friction = std::stof(values["friction"]);
+                _drag = std::stof(values["drag"]);
+                _friction = std::stof(values["friction"]);
 
-        _max_slip_velocity = std::stof(values["max_slip_velocity"]);
-        _min_traction = std::stof(values["min_traction"]);
-        _max_traction = std::stof(values["max_traction"]);
+                _max_slip_velocity = std::stof(values["max_slip_velocity"]);
+                _min_traction = std::stof(values["min_traction"]);
+                _max_traction = std::stof(values["max_traction"]);
+        } else {
+                std::cerr << "Can't read xml file!" << std::endl;
+        }
 }
 
 float Core::Car::getAccelerationPower() const { return _acceleration_power; }

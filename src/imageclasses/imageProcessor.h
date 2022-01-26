@@ -1,7 +1,3 @@
-//
-// Created by Sam Roggeman on 1/14/2022.
-//
-
 #ifndef RACINGSIMULATOR_IMAGEPROCESSOR_H
 #define RACINGSIMULATOR_IMAGEPROCESSOR_H
 #include "../game_logic/entities/Wall.h"
