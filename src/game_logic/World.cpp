@@ -14,16 +14,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         generateGroundTiles(2);
 
-        initializeWalls("assets/maps/Untitled3.png", 5);
+//        initializeWalls("assets/maps/Untitled3.png", 5);
         //        loadMap("assets/maps/world.save");
-
-        Vector2f intersection1;
-        Vector2f intersection2;
-        bool intersected_twice;
-
-        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2,
-                                                        intersected_twice)
-                  << std::endl;
 }
 
 World::~World() { saveMap("assets/maps/world_last_run.save"); }
@@ -414,41 +406,43 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         }
 
         // polygon intersection
-        for (int i = 0; i < points.size(); i++) {
-                Vector2f point1 = points[i];
-                Vector2f point2;
+        else {
+                for (int i = 0; i < points.size(); i++) {
+                        Vector2f point1 = points[i];
+                        Vector2f point2;
 
-                if (i != points.size() - 1)
-                        point2 = points[i + 1];
-                else
-                        point2 = points[0];
+                        if (i != points.size() - 1)
+                                point2 = points[i + 1];
+                        else
+                                point2 = points[0];
 
-                bool is_collinear;
+                        bool is_collinear;
 
-                intersected = false;
-                intersection1.clear();
-                intersection2.clear();
+                        intersected = false;
+                        intersection1.clear();
+                        intersection2.clear();
 
-                intersected =
-                    checkLinesegmentLinesegmentIntersection(raycast->getOrigin(), raycast->getEndpoint(), point1,
-                                                            point2, intersection1, intersection2, is_collinear);
+                        intersected = checkLinesegmentLinesegmentIntersection(
+                            raycast->getOrigin(), raycast->getEndpoint(), point1, point2, intersection1, intersection2,
+                            is_collinear);
 
-                if (!intersected)
-                        continue;
+                        if (!intersected)
+                                continue;
 
-                if (is_collinear) {
-                        collision_point1 = intersection1;
-                        collision_point2 = intersection2;
-                        collided_twice = true;
-                        break;
-                } else if (collided_once) {
-                        collision_point2 = intersection1;
-                        collided_once = false;
-                        collided_twice = true;
-                        break;
-                } else {
-                        collision_point1 = intersection1;
-                        collided_once = true;
+                        if (is_collinear) {
+                                collision_point1 = intersection1;
+                                collision_point2 = intersection2;
+                                collided_twice = true;
+                                break;
+                        } else if (collided_once) {
+                                collision_point2 = intersection1;
+                                collided_once = false;
+                                collided_twice = true;
+                                break;
+                        } else {
+                                collision_point1 = intersection1;
+                                collided_once = true;
+                        }
                 }
         }
 
@@ -775,19 +769,39 @@ bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vecto
                                                float cr, Vector2f& intersection1, Vector2f& intersection2,
                                                bool& collided_twice)
 {
-        float line_length = (l1p2 - l1p1).length();
-        Vector2f axis = (l1p2 - l1p1).normalized();
+        Vector2f d = l1p2 - l1p1;
+        Vector2f f = l1p1 - cmp;
 
-        float cmp_projected = axis.dotProduct(cmp);
+        float a = d.dotProduct(d);
+        float b = 2 * f.dotProduct(d);
+        float c = f.dotProduct(f) - cr * cr;
 
-        //        std::cout << "line_length: " << line_length << std::endl;
-        //        std::cout << "cmp_projected: " << cmp_projected << std::endl;
+        float discriminant = b * b - 4 * a * c;
+        if (discriminant < 0)
+                return false;
 
-        //        if (cmp_projected - cr >= )
+        discriminant = sqrt(discriminant);
 
-        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2))
-                return true;
+        float t1 = (-b - discriminant) / (2 * a);
+        float t2 = (-b + discriminant) / (2 * a);
 
-        return false;
+        bool collided_once{false};
+
+        if (t1 >= 0 && t1 <= 1) {
+                intersection1 = l1p1 + d * t1;
+                collided_once = true;
+        }
+
+        if (t2 >= 0 && t2 <= 1) {
+                if (!collided_once) {
+                        intersection1 = l1p1 + d * t2;
+                        collided_once = true;
+                } else {
+                        intersection2 = l1p1 + d * t2;
+                        collided_twice = true;
+                }
+        }
+
+        return collided_once;
 }
 } // namespace Core

@@ -54,7 +54,7 @@ void Core::Car::update(double t, float dt)
         // direction
         float velocity_dot_direction = _velocity.dotProduct(_direction);
 
-        bool going_forwards = velocity_dot_direction > 0;
+        bool going_forwards = velocity_dot_direction >= 0;
         float direction_sign = 1;
         if (!going_forwards) {
                 direction_sign = -1;
@@ -66,6 +66,20 @@ void Core::Car::update(double t, float dt)
         Vector2f friction_force = _velocity * _friction;
         Vector2f drag_force = _velocity * _velocity.length() * _drag;
         _acceleration -= friction_force + drag_force;
+
+        // acceleration
+        if (_input_map->up > 0) {
+                _force += _direction * _acceleration_power * _input_map->up;
+                // braking
+                if (!going_forwards)
+                        _force += _direction * _braking_power * _input_map->up;
+        }
+        if (_input_map->down > 0) {
+                _force -= _direction * _reverse_acceleration_power * _input_map->down;
+                // braking
+                if (going_forwards)
+                        _force -= _direction * _braking_power * _input_map->down;
+        }
 
         // steering & traction
         float alpha = _velocity.length() / _max_slip_velocity;
@@ -79,26 +93,6 @@ void Core::Car::update(double t, float dt)
         }
         if (_input_map->right > 0) {
                 steer(-current_angle * _input_map->right, direction_sign, dt);
-        }
-
-        // acceleration
-        if (_input_map->up > 0) {
-                //                _force += _direction * _acceleration_power * _input_map->up;
-                if (going_forwards) {
-                        _force += _direction * _acceleration_power * _input_map->up;
-                } else {
-                        // braking
-                        _force += _direction * _braking_power * _input_map->up;
-                }
-        }
-        if (_input_map->down > 0) {
-                //                _force -= _direction * _reverse_acceleration_power * _input_map->down;
-                if (!going_forwards) {
-                        _force -= _direction * _reverse_acceleration_power * _input_map->down;
-                } else {
-                        // braking
-                        _force -= _direction * _braking_power * _input_map->down;
-                }
         }
 
         // raycasts

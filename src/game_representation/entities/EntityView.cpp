@@ -43,7 +43,7 @@ sf::VertexArray Representation::EntityView::getHitbox() const
                 std::shared_ptr<Core::Hitbox> hitbox = entity_model_shared->getRepresentationHitbox();
 
                 // polygon
-                if (hitbox->getRadius().empty() && !hitbox->getPoints().empty()) {
+                if (!entity_model_shared->getHitbox()->isCircle() && !entity_model_shared->getHitbox()->isEllipse()) {
                         hitbox_draw = sf::VertexArray(sf::LineStrip, hitbox->getPoints().size() + 1);
 
                         for (int i = 0; i < hitbox->getPoints().size(); i++) {
@@ -56,7 +56,7 @@ sf::VertexArray Representation::EntityView::getHitbox() const
                         hitbox_draw[hitbox->getPoints().size()] = hitbox_draw[0];
                 }
                 // circle
-                else if (hitbox->getRadius().x == hitbox->getRadius().y) {
+                else if (entity_model_shared->getHitbox()->isCircle() && !entity_model_shared->getHitbox()->isEllipse()) {
                         unsigned int circle_points = RepresentationConstants::circle_hitbox_points;
 
                         hitbox_draw = sf::VertexArray(sf::LineStrip, circle_points + 1);
