@@ -106,6 +106,7 @@ public:
         std::vector<std::shared_ptr<Raycast>> getRepresentationRaycasts() const;
 
         virtual unsigned int addRaycast(const std::shared_ptr<Core::Raycast>& raycast);
+        Vector2f getAbsoluteViewSize() const;
 };
 } // namespace Core
 

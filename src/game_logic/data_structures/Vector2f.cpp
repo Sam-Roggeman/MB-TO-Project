@@ -128,19 +128,20 @@ void Core::Vector2f::normalize()
 
 Core::Vector2f Core::Vector2f::normalized()
 {
-      Vector2f new_vector = *this;
-      new_vector.normalize();
-      return new_vector;
+        Vector2f new_vector = *this;
+        new_vector.normalize();
+        return new_vector;
 }
 
 float Core::Vector2f::dotProduct(const Vector2f& other) const { return x * other.x + y * other.y; }
 
 float Core::Vector2f::crossProduct(const Vector2f& other) const { return (x * other.y) - (y * other.x); }
 
-void Core::Vector2f::rotate(float angle_radian, const Vector2f& pivot_point) {
+void Core::Vector2f::rotate(float angle_radian, const Vector2f& pivot_point)
+{
         if (pivot_point == *this)
                 return;
-        
+
         // translate point back to origin pivot
         *this -= pivot_point;
 
@@ -156,7 +157,7 @@ Core::Vector2f Core::Vector2f::rotated(float angle_radian, const Vector2f& pivot
 {
         if (pivot_point == *this)
                 return *this;
-        
+
         Vector2f rotated_point = *this;
 
         rotated_point.rotate(angle_radian, pivot_point);
@@ -191,4 +192,9 @@ Core::Vector2f Core::Vector2f::scaled(const Core::Vector2f& scale, const Core::V
         scaled_point.scale(scale, pivot_point);
 
         return scaled_point;
+}
+std::ifstream& Core::operator<<(std::ifstream& os, const Core::Vector2f& vector)
+{
+        os << vector;
+        return os;
 }

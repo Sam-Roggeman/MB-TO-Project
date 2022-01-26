@@ -62,6 +62,7 @@ public:
         bool operator>=(const Vector2f& other) const;
 
         friend std::ostream& operator<<(std::ostream& os, const Vector2f& vector);
+        friend std::ifstream& operator<<(std::ifstream& os, const Vector2f& vector);
 
         bool empty() const;
 
@@ -77,13 +78,13 @@ public:
 
         float crossProduct(const Vector2f& other) const;
 
-        void rotate(float angle_radian, const Vector2f& pivot_point={0, 0});
+        void rotate(float angle_radian, const Vector2f& pivot_point = {0, 0});
 
-        Vector2f rotated(float angle_radian, const Vector2f& pivot_point={0, 0}) const;
+        Vector2f rotated(float angle_radian, const Vector2f& pivot_point = {0, 0}) const;
 
-        void scale(const Vector2f& scale, const Vector2f& pivot_point={0, 0});
+        void scale(const Vector2f& scale, const Vector2f& pivot_point = {0, 0});
 
-        Vector2f scaled(const Vector2f& scale, const Vector2f& pivot_point={0, 0}) const;
+        Vector2f scaled(const Vector2f& scale, const Vector2f& pivot_point = {0, 0}) const;
 };
 } // namespace Core
 
