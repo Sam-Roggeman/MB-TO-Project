@@ -61,7 +61,7 @@ std::shared_ptr<Core::Wall> Representation::EntityModelCreator::createWallModel(
         _wall_views.push_back(wall_view_weak);
 
         // entity view textures & animations
-        wall_view->addTexture(loadTexture("assets/textures/cobble_stone.png"));
+        wall_view->addTexture(loadTexture("assets/textures/wall_texture.png"));
 
         wall_view->setTexture(0);
 
@@ -156,6 +156,24 @@ std::shared_ptr<Core::Car> Representation::EntityModelCreator::createCarModel(st
         return car_model;
 }
 
+std::shared_ptr<Core::Checkpoint> Representation::EntityModelCreator::createCheckpointModel(
+    std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size, const Core::Vector2f& raycast_direction, float raycast_length)
+{
+        // entity model
+        std::shared_ptr<Core::Checkpoint> checkpoint_model(new Core::Checkpoint(camera, position, view_size, raycast_direction, raycast_length));
+        
+        // entity view
+        std::shared_ptr<Representation::EntityView> checkpoint_view(new Representation::EntityView(checkpoint_model));
+        std::weak_ptr<Representation::EntityView> checkpoint_view_weak = checkpoint_view;
+        _checkpoint_views.push_back(checkpoint_view_weak);
+
+        // link model and view through the observer pattern
+        checkpoint_model->addObserver(checkpoint_view);
+        checkpoint_model->notifyObservers();
+
+        return checkpoint_model;
+}
+
 std::shared_ptr<Core::GroundTile> Representation::EntityModelCreator::createGroundTileModel(
     std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
 {
@@ -195,6 +213,10 @@ std::vector<std::shared_ptr<Representation::EntityView>> Representation::EntityM
         std::vector<std::shared_ptr<Representation::EntityView>> wall_views = getEntityViews(_wall_views);
         entity_views.insert(entity_views.end(), wall_views.begin(), wall_views.end());
 
+        // checkpoints
+        std::vector<std::shared_ptr<Representation::EntityView>> checkpoint_views = getEntityViews(_checkpoint_views);
+        entity_views.insert(entity_views.end(), checkpoint_views.begin(), checkpoint_views.end());
+        
         // cars
         std::vector<std::shared_ptr<Representation::EntityView>> car_views = getEntityViews(_car_views);
         entity_views.insert(entity_views.end(), car_views.begin(), car_views.end());

@@ -3,7 +3,7 @@
 Core::EntityModel::EntityModel(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position,
                                const Core::Vector2f& view_size)
     : _position(position), _rotation(0), _scale(1, 1), _mass(1), _camera(std::move(camera)), _view_size(view_size),
-      _input_map(new InputMap()), _is_static(true)
+      _input_map(new InputMap()), _is_static(true), _focus_camera(false)
 {
         _hitbox = std::make_shared<Core::Hitbox>(_position, _view_size.x, _view_size.y);
 }
@@ -19,15 +19,21 @@ void Core::EntityModel::update(double t, float dt)
         move(dt * move_velocity);
         _velocity += dt * _acceleration;
 
+        float min_value = 1.e-4f;
         // remove small velocities
-        if (_velocity.x < 1.e-2f && _velocity.x > -1.e-2f)
+        if (_velocity.x < min_value && _velocity.x > -min_value)
                 _velocity.x = 0;
-        if (_velocity.y < 1.e-2f && _velocity.y > -1.e-2f)
+        if (_velocity.y < min_value && _velocity.y > -min_value)
                 _velocity.y = 0;
 
-        // reset forces/accelerations
+        // clear forces/accelerations
         _force = {0, 0};
         _acceleration = {0, 0};
+
+        // camera
+        if (_focus_camera) {
+                _camera->setPosition(_position);
+        }
 
         notifyObservers();
 }
@@ -133,6 +139,8 @@ Core::Vector2f Core::EntityModel::getRepresentationViewSize() const { return _ca
 
 void Core::EntityModel::setViewSize(const Core::Vector2f& view_size) { _view_size = view_size; }
 
+void Core::EntityModel::setCameraFocus(bool focus) { _focus_camera = focus; }
+
 std::shared_ptr<Core::Hitbox> Core::EntityModel::getHitbox() const { return _hitbox; }
 
 std::shared_ptr<Core::Hitbox> Core::EntityModel::getRepresentationHitbox() const
@@ -155,6 +163,9 @@ std::shared_ptr<Core::Hitbox> Core::EntityModel::getRepresentationHitbox() const
 bool Core::EntityModel::getStatic() const { return _is_static; }
 
 void Core::EntityModel::setStatic(bool is_static) { _is_static = is_static; }
+
+void Core::EntityModel::onHit()
+{}
 
 std::shared_ptr<Core::Raycast> Core::EntityModel::getRaycast(unsigned int raycast_id) const
 {
@@ -188,4 +199,11 @@ unsigned int Core::EntityModel::addRaycast(const std::shared_ptr<Core::Raycast>&
 {
         _raycasts.push_back(raycast);
         return _raycasts.size() - 1;
+}
+
+void Core::EntityModel::resetRaycasts()
+{
+        for (auto& raycast : _raycasts) {
+                raycast->clear();
+        }
 }

@@ -52,6 +52,8 @@ public:
 
         Vector2f getCollisionPoint() const;
         void setCollisionPoint(const Vector2f& collision_point);
+
+        void clear();
 };
 } // namespace Core
 #endif // UABA2_AP_PROJECT_RAYCAST_H

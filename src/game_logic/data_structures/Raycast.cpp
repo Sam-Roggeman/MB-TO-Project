@@ -76,3 +76,8 @@ void Core::Raycast::setActivated(bool activated) { _activated = activated; }
 Core::Vector2f Core::Raycast::getCollisionPoint() const { return _collision_point; }
 
 void Core::Raycast::setCollisionPoint(const Core::Vector2f& collision_point) { _collision_point = collision_point; }
+
+void Core::Raycast::clear() {
+        setActivated(false);
+        _collision_point.clear();
+}

@@ -3,18 +3,24 @@
 namespace Core {
 World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
              float y_max)
-    : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap)
+    : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap),
+      generation(0)
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2},
+        _player = _entity_model_creator->createCarModel(_camera, {2, 0}, {0.2, 0.2},
                                                         "assets/car_presets/physics_preset_1.xml",
                                                         "assets/car_presets/sprite_preset_1.xml");
         _player->setInputMap(_user_input_map);
+        _player->setCameraFocus(true);
 
-        generateGroundTiles(2);
+        generateTestMap();
 
-//        initializeWalls("assets/maps/Untitled3.png", 5);
+        generateCars({2, 0}, {-1, 0}, 5, "assets/car_presets/physics_preset_1.xml",
+                     "assets/car_presets/sprite_preset_1.xml");
+
+
+        //        initializeWalls("assets/maps/Untitled2.png", 5);
         //        loadMap("assets/maps/world.save");
 }
 
@@ -23,6 +29,24 @@ World::~World() { saveMap("assets/maps/world_last_run.save"); }
 void World::update(double t, float dt)
 {
         // logic
+        bool all_cars_dead_or_finished = true;
+        for (auto& car : _cars) {
+                if (!(car->isDead() || car->reachedFinish())) {
+                        all_cars_dead_or_finished = false;
+                }
+        }
+
+        if (all_cars_dead_or_finished) {
+                generation++;
+
+                std::cout << "generation: " << generation << std::endl;
+
+                for (auto& car : _cars) {
+                        car->reset({2, 0}, {-1, 0});
+                }
+
+                // neural network mutation
+        }
 
         // updates
         updateEntities(t, dt);
@@ -33,7 +57,7 @@ void World::update(double t, float dt)
 
 std::shared_ptr<InputMap> World::getInputMap() { return _user_input_map; }
 
-void World::saveMap(const std::string& filepath)
+void World::saveMap(const std::string& filepath) const
 {
         ofstream myfile{filepath};
 
@@ -142,6 +166,7 @@ void World::meltWalls()
         meltColumns();
         meltRows();
 }
+
 void World::meltRows()
 {
         bool melted_wall = false;
@@ -214,6 +239,7 @@ void World::meltRows()
         if (melted_wall)
                 meltRows();
 }
+
 void World::meltColumns()
 {
         bool melted_wall = false;
@@ -286,6 +312,226 @@ void World::meltColumns()
         if (melted_wall)
                 meltColumns();
 }
+
+void World::generateSquareWallEnclosure(const Vector2f& origin, float size, float wall_thickness)
+{
+        std::shared_ptr<Wall> left_wall = _entity_model_creator->createWallModel(
+            _camera, {origin.x - (size / 2), origin.y}, {wall_thickness, size + wall_thickness});
+        _walls.push_back(left_wall);
+
+        std::shared_ptr<Wall> right_wall = _entity_model_creator->createWallModel(
+            _camera, {origin.x + (size / 2), origin.y}, {wall_thickness, size + wall_thickness});
+        _walls.push_back(right_wall);
+
+        std::shared_ptr<Wall> down_wall = _entity_model_creator->createWallModel(
+            _camera, {origin.x, origin.y - (size / 2)}, {size - wall_thickness, wall_thickness});
+        _walls.push_back(down_wall);
+
+        std::shared_ptr<Wall> up_wall = _entity_model_creator->createWallModel(
+            _camera, {origin.x, origin.y + (size / 2)}, {size - wall_thickness, wall_thickness});
+        _walls.push_back(up_wall);
+}
+
+void World::generateCars(const Vector2f& position, const Vector2f& direction, unsigned int amount,
+                         const std::string& physics_preset, const std::string& sprite_preset)
+{
+        for (unsigned int i = 0; i < amount; i++) {
+                if (physics_preset.empty() && sprite_preset.empty()) {
+                        std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
+                            _camera, position, {0.2, 0.2}, physics_preset, sprite_preset);
+                        new_car->rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI / 2));
+                        new_car->setAIControlled(true);
+                        new_car->setCheckpointCount(_checkpoints.size());
+                        _cars.push_back(new_car);
+                } else {
+                        std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
+                            _camera, position, {0.2, 0.2}, physics_preset, sprite_preset);
+                        new_car->rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI / 2));
+                        new_car->setAIControlled(true);
+                        new_car->setCheckpointCount(_checkpoints.size());
+                        _cars.push_back(new_car);
+                }
+        }
+}
+
+void World::generateTestMap()
+{
+        // ground
+        generateGroundTiles(2);
+
+        // walls
+        generateSquareWallEnclosure({0, 0}, 5, 0.5);
+        generateSquareWallEnclosure({0, 0}, 2, 0.2);
+
+        // checkpoints
+
+        float raycast_length = 1.7;
+        Vector2f view_size = {0, 0};
+
+        bool show_raycast = false;
+
+        // right wall
+
+        // first checkpoint
+        std::shared_ptr<Checkpoint> new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, 0.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, 1.25}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint = _entity_model_creator->createCheckpointModel(_camera, {2.5, 2.5}, view_size, {-1, 0},
+                                                                      raycast_length * 1.25f);
+        new_checkpoint->rotate(CoreUtils::toRadian(45));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        // top wall
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {1.25, 2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(90 - 20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {0.5, 2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {0, 2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-0.5, 2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-1.25, 2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(90 + 20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        // left wall
+        new_checkpoint = _entity_model_creator->createCheckpointModel(_camera, {-2.5, 2.5}, view_size, {-1, 0},
+                                                                      raycast_length * 1.25f);
+        new_checkpoint->rotate(CoreUtils::toRadian(180 - 45));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-2.5, 1.25}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(180 - 20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-2.5, 0.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(180));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-2.5, 0}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(180));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-2.5, -0.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(180));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-2.5, -1.25}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(180 + 20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint = _entity_model_creator->createCheckpointModel(_camera, {-2.5, -2.5}, view_size, {-1, 0},
+                                                                      raycast_length * 1.25f);
+        new_checkpoint->rotate(CoreUtils::toRadian(180 + 45));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        // down wall
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-1.25, -2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-(90 + 20)));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {-0.5, -2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {0, -2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {0.5, -2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-90));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {1.25, -2.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-(90 - 20)));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        // last raycast on the right side
+        new_checkpoint = _entity_model_creator->createCheckpointModel(_camera, {2.5, -2.5}, view_size, {-1, 0},
+                                                                      raycast_length * 1.25f);
+        new_checkpoint->rotate(CoreUtils::toRadian(-45));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, -1.25}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, -0.5}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, -1.25}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->rotate(CoreUtils::toRadian(-20));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        new_checkpoint = _entity_model_creator->createCheckpointModel(_camera, {2.5, -2.5}, view_size, {-1, 0},
+                                                                      raycast_length * 1.25f);
+        new_checkpoint->rotate(CoreUtils::toRadian(-45));
+        new_checkpoint->setShowRaycast(show_raycast);
+        _checkpoints.push_back(new_checkpoint);
+
+        // finish_line
+        new_checkpoint =
+            _entity_model_creator->createCheckpointModel(_camera, {2.5, 0}, view_size, {-1, 0}, raycast_length);
+        new_checkpoint->setShowRaycast(show_raycast);
+        _finish_line = new_checkpoint;
+}
+
 void World::updateEntities(double t, float dt)
 {
         // player
@@ -309,9 +555,10 @@ void World::updateEntities(double t, float dt)
 
 void World::checkCollisions()
 {
+        // walls
         for (auto& wall : _walls) {
                 // player
-                bool collided = checkCollision(_player, wall);
+                checkCollision(_player, wall);
 
                 for (auto& raycast : _player->getRaycasts()) {
                         checkCollision(raycast, wall);
@@ -319,10 +566,28 @@ void World::checkCollisions()
 
                 // cars
                 for (auto& car : _cars) {
-                        checkCollision(car, wall);
+                        if (checkCollision(car, wall)) {
+                                car->onHit();
+                        }
 
                         for (auto& raycast : car->getRaycasts()) {
                                 checkCollision(raycast, wall);
+                        }
+                        
+                        // checkpoints
+                        for (auto& checkpoint : _checkpoints) {
+                                std::shared_ptr<Raycast> raycast = checkpoint->getRaycast(0);
+                                if (checkCollision(raycast, car)) {
+                                        car->onHitCheckpoint(checkpoint->getID());
+                                        raycast->clear();
+                                }
+                        }
+                        
+                        // finish line
+                        std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
+                        if (checkCollision(raycast, car)) {
+                                car->checkReachedFinish(_checkpoints.size());
+                                raycast->clear();
                         }
                 }
         }

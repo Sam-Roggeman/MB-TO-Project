@@ -12,9 +12,9 @@
 //        vector<double> vision;   // car vision (rays)
 //        vector<double> decision; // car decision (turn direction, etc)
 //
-//        FFNeuralNetwork brain;
+//        FFNeuralNetwork _brain;
 //
-//        Car() : brain(3, 4, 1, 2), vision(0, 3), decision(0, 1) {}
+//        Car() : _brain(3, 4, 1, 2), vision(0, 3), decision(0, 1) {}
 //
 //        boolean bodyCollide(double x, double y) {}
 //
@@ -31,13 +31,13 @@
 //        Car crossover(Car parent)
 //        { // crossover the car with another car
 //                Car child = Car;
-//                child.brain = brain.crossover(parent.brain);
+//                child._brain = _brain.crossover(parent._brain);
 //                return child;
 //        }
 //
 //        void mutate(double mutationRate)
-//        { // mutate the cars brain
-//                brain.mutate(mutationRate);
+//        { // mutate the cars _brain
+//                _brain.mutate(mutationRate);
 //        }
 //
 //        void calculateFitness()

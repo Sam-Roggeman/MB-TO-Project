@@ -83,6 +83,8 @@ void Representation::Game::handleEvents()
                         handleInput(event, false);
                         break;
 
+
+
                 default:
                         break;
                 }

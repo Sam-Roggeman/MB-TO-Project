@@ -12,7 +12,7 @@
 //bool humanPlaying = false; // false for AI, true to play yourself
 //bool replayBest = true;    // shows only the best car of each generation
 //bool seeVision = false;    // see the cars vision
-//bool modelLoaded = false;  // loaded car with pretrained weights for brain
+//bool modelLoaded = false;  // loaded car with pretrained weights for _brain
 //
 //// vector<int> evolution; for graph
 //// EvolutionGraph graph;
@@ -31,7 +31,7 @@
 //        if (humanPlaying) {
 //                car.update();
 //                if (car.done) {
-//                        car = Car(); // or reset the same car
+//                        car = Car(); // or clear the same car
 //                }
 //        } else {
 //                if (!modelLoaded) {
@@ -46,7 +46,7 @@
 //                } else {
 //                        model.update();
 //                        if (model.done()) {
-//                                // reset car
+//                                // clear car
 //                        }
 //                }
 //        }

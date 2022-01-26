@@ -273,7 +273,7 @@ void CFG::EliminateUnitPairs()
                                                 // check of het symbol vanuit from een unit pair is
                                                 if (std::find(unit_pairs.begin(), unit_pairs.end(),
                                                               std::make_pair(from, symbol)) == unit_pairs.end()) {
-                                                        // voeg het toe en reset the while loop
+                                                        // voeg het toe en clear the while loop
                                                         unit_pairs.emplace_back(std::make_pair(from, symbol));
                                                         unit_productions.at(from).emplace_back(symbol);
                                                         finished = false;

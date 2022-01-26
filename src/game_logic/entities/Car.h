@@ -2,8 +2,8 @@
 #define UABA2_AP_PROJECT_CAR_H
 
 #include "../CoreConstants.h"
-#include "../utils/json.hpp"
 #include "EntityModel.h"
+#include "../utils/json.hpp"
 #include <fstream>
 #include "../../Ai/FNN.h" //mohammed
 #include "../../AutomataAndGrammars/SLR.h"
@@ -28,18 +28,48 @@ private:
         float _min_traction;
         float _max_traction;
 
-        FFNeuralNetwork brain; //mohammed
+        FFNeuralNetwork _brain; //mohammed
+        bool _ai_controlled;
+        bool _reached_finish;
+        bool _is_dead;
+        float _total_distance_traveled;
+        float _total_time;
+        std::set<unsigned int> _checkpoint_ids;
+        unsigned int _total_checkpoint_count;
+        float _fitness;
+
 public:
         Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size);
         ~Car() = default;
 
         void update(double t, float dt) override;
 
-        void reset();
+        void onHit() override;
+
+        void onHitCheckpoint(unsigned int checkpoint_id);
+
+        void reset(const Vector2f& position={0, 0}, const Vector2f& direction={0, 1});
 
         void steer(float angle_radian, float direction_sign, float dt);
 
         void loadPhysicsPreset(const std::string& preset_file_path);
+
+        bool getAIControlled() const;
+        void setAIControlled(bool ai_controlled);
+
+        bool isDead() const;
+        void setDead(bool is_dead);
+
+        bool reachedFinish() const;
+        void checkReachedFinish(unsigned int checkpoint_count);
+
+        float getTotalDistanceTraveled() const;
+        float getTotalTime() const;
+
+        void calculateFitness();
+        float getFitness();
+
+        void setCheckpointCount(unsigned int count);
 
         float getAccelerationPower() const;
         void setAccelerationPower(float value);

@@ -35,6 +35,7 @@ protected:
         std::vector<std::shared_ptr<Raycast>> _raycasts;
 
         std::shared_ptr<Core::Camera> _camera;
+        bool _focus_camera;
         Vector2f _view_size;
 
         std::shared_ptr<InputMap> _input_map;
@@ -91,6 +92,8 @@ public:
 
         virtual void setViewSize(const Vector2f& view_size);
 
+        virtual void setCameraFocus(bool focus);
+
         virtual std::shared_ptr<Hitbox> getHitbox() const;
 
         virtual std::shared_ptr<Hitbox> getRepresentationHitbox() const;
@@ -99,13 +102,18 @@ public:
 
         virtual void setStatic(bool is_static);
 
+        virtual void onHit();
+
         virtual std::shared_ptr<Raycast> getRaycast(unsigned int raycast_id) const;
 
-        std::vector<std::shared_ptr<Raycast>> getRaycasts() const;
+        virtual std::vector<std::shared_ptr<Raycast>> getRaycasts() const;
 
-        std::vector<std::shared_ptr<Raycast>> getRepresentationRaycasts() const;
+        virtual std::vector<std::shared_ptr<Raycast>> getRepresentationRaycasts() const;
 
         virtual unsigned int addRaycast(const std::shared_ptr<Core::Raycast>& raycast);
+
+        virtual void resetRaycasts();
+
         Vector2f getAbsoluteViewSize() const;
 };
 } // namespace Core

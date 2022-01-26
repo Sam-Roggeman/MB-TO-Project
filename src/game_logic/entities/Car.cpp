@@ -1,7 +1,8 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), brain(5,4,4,2) //mohammed
+    : EntityModel(std::move(camera), position, view_size), _brain(5, 4, 4, 2), _ai_controlled(false), _is_dead(false),
+      _reached_finish(false), _total_distance_traveled(0), _total_time(0), _fitness(0)
 {
         _direction = {0, 1};
         _mass = 1500;
@@ -14,7 +15,7 @@ Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& posit
         _wheel_base = view_size.y * 0.9f;
 
         _drag = 0.015;
-        _friction = 0.2;
+        _friction = 0.3;
 
         _max_slip_velocity = 4;
         _min_traction = 1;
@@ -26,60 +27,50 @@ Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& posit
 void Core::Car::update(double t, float dt)
 {
         // neural network
-        vector<float> raycast_lengths;
-        for (auto& raycast : _raycasts) {
-                raycast_lengths.push_back((raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
+        if (_ai_controlled && !(_is_dead || _reached_finish)) {
+                vector<float> raycast_lengths;
+                for (auto& raycast : _raycasts) {
+                        raycast_lengths.push_back(
+                            (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
+                }
+                vector<float> neural_outputs = _brain(raycast_lengths);
+
+                //        int maxIndex = 0;
+                //        float max = 0;
+                //        for(int i = 0; i < neural_outputs.size(); i++) {
+                //                if(neural_outputs[i] > max) {
+                //                        max = neural_outputs[i];
+                //                        maxIndex = i;
+                //                }
+                //        }
+
+                _input_map->up = 0.2;
+                _input_map->down = 0;
+                _input_map->right = neural_outputs[2];
+                _input_map->left = neural_outputs[3];
         }
-        vector<float> neural_outputs = brain(raycast_lengths);
 
-//        int maxIndex = 0;
-//        float max = 0;
-//        for(int i = 0; i < neural_outputs.size(); i++) {
-//                if(neural_outputs[i] > max) {
-//                        max = neural_outputs[i];
-//                        maxIndex = i;
-//                }
-//        }
-
-//        _input_map->up = neural_outputs[0];
-//        _input_map->down = neural_outputs[1];
-//        _input_map->right = neural_outputs[2];
-//        _input_map->left = neural_outputs[3];
-
-        // reset
+        // clear
         if (_input_map->reset) {
-                reset();
+                reset({0, 0}, {0, 1});
         }
 
         // direction
         float velocity_dot_direction = _velocity.dotProduct(_direction);
 
-        bool going_forwards = velocity_dot_direction >= 0;
+        bool going_forwards = velocity_dot_direction > 0;
         float direction_sign = 1;
         if (!going_forwards) {
                 direction_sign = -1;
         }
 
-        _velocity = direction_sign * _velocity.length() * _direction;
-
         // friction & drag
         Vector2f friction_force = _velocity * _friction;
+        if (_velocity.length() < 0.1) {
+                friction_force *= 3;
+        }
         Vector2f drag_force = _velocity * _velocity.length() * _drag;
         _acceleration -= friction_force + drag_force;
-
-        // acceleration
-        if (_input_map->up > 0) {
-                _force += _direction * _acceleration_power * _input_map->up;
-                // braking
-                if (!going_forwards)
-                        _force += _direction * _braking_power * _input_map->up;
-        }
-        if (_input_map->down > 0) {
-                _force -= _direction * _reverse_acceleration_power * _input_map->down;
-                // braking
-                if (going_forwards)
-                        _force -= _direction * _braking_power * _input_map->down;
-        }
 
         // steering & traction
         float alpha = _velocity.length() / _max_slip_velocity;
@@ -95,25 +86,65 @@ void Core::Car::update(double t, float dt)
                 steer(-current_angle * _input_map->right, direction_sign, dt);
         }
 
-        // raycasts
-        for (auto& raycast : _raycasts) {
-                raycast->setActivated(false);
+        // acceleration
+        if (_input_map->up > 0) {
+                _force += _direction * _acceleration_power * _input_map->up;
+                // braking
+                if (!going_forwards)
+                        _force += _direction * _braking_power * _input_map->up;
+        }
+        if (_input_map->down > 0) {
+                _force -= _direction * _reverse_acceleration_power * _input_map->down;
+                // braking
+                if (going_forwards)
+                        _force -= _direction * _braking_power * _input_map->down;
         }
 
-        // camera
-        _camera->setPosition(_position);
+        // raycasts
+        resetRaycasts();
 
+        // add time
+        _total_time += dt;
+
+        Vector2f old_position;
+
+        // calculate distance travelled
+        if (!(_is_dead || _reached_finish))
+                old_position = _position;
+
+        // apply physics
         Core::EntityModel::update(t, dt);
+
+        if (!(_is_dead || _reached_finish))
+                _total_distance_traveled += (_position - old_position).length();
 }
 
-void Core::Car::reset()
+void Core::Car::onHit()
 {
-        setPosition({0, 0});
+        setDead(true);
+        _velocity.clear();
+}
+
+void Core::Car::onHitCheckpoint(unsigned int checkpoint_id) { _checkpoint_ids.insert(checkpoint_id); }
+
+void Core::Car::reset(const Vector2f& position, const Vector2f& direction)
+{
+        setPosition(position);
         _velocity.clear();
         _force.clear();
 
         _direction = {0, 1};
         setRotation(0);
+
+        rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI) / 2.f);
+
+        _is_dead = false;
+        _reached_finish = false;
+        _checkpoint_ids.clear();
+
+        _total_distance_traveled = 0;
+        _total_time = 0;
+        _fitness = 0;
 }
 
 void Core::Car::steer(float angle_radian, float direction_sign, float dt)
@@ -133,12 +164,12 @@ void Core::Car::steer(float angle_radian, float direction_sign, float dt)
 
 void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
 {
-        std::map<std::string,std::string> values;
+        std::map<std::string, std::string> values;
         SLR slr = SLR("assets/SLR_json/Xml.json");
 
-        slr.ParseXML(values,preset_file_path);
+        slr.ParseXML(values, preset_file_path);
 
-        if (!values.empty()){
+        if (!values.empty()) {
                 _acceleration_power = std::stof(values["acceleration_power"]);
                 _reverse_acceleration_power = std::stof(values["reverse_acceleration_power"]);
                 _braking_power = std::stof(values["braking_power"]);
@@ -156,6 +187,46 @@ void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
                 std::cerr << "Can't read xml file!" << std::endl;
         }
 }
+
+bool Core::Car::getAIControlled() const { return _ai_controlled; }
+void Core::Car::setAIControlled(bool ai_controlled) { _ai_controlled = ai_controlled; }
+
+bool Core::Car::isDead() const { return _is_dead; }
+void Core::Car::setDead(bool is_dead)
+{
+        _is_dead = is_dead;
+        if (is_dead)
+                calculateFitness();
+}
+
+bool Core::Car::reachedFinish() const { return _reached_finish; }
+void Core::Car::checkReachedFinish(unsigned int checkpoint_count)
+{
+        if (_checkpoint_ids.size() == checkpoint_count) {
+                _reached_finish = true;
+                _velocity.clear();
+                calculateFitness();
+        }
+}
+
+float Core::Car::getTotalDistanceTraveled() const { return _total_distance_traveled; }
+float Core::Car::getTotalTime() const { return _total_time; }
+
+void Core::Car::calculateFitness()
+{
+        if (_fitness == 0) {
+                _fitness = 1;
+//                std::cout << "time: " << _total_time << std::endl;
+//
+//                std::cout << "checkpoints: " << _total_checkpoint_count << std::endl;
+//                std::cout << "checkpoints not triggered: " << _total_checkpoint_count - _checkpoint_ids.size() << std::endl;
+//                std::cout << "******************" << std::endl;
+        }
+}
+
+float Core::Car::getFitness() { return _fitness; }
+
+void Core::Car::setCheckpointCount(unsigned int count) { _total_checkpoint_count = count; }
 
 float Core::Car::getAccelerationPower() const { return _acceleration_power; }
 void Core::Car::setAccelerationPower(float value) { _acceleration_power = value; }

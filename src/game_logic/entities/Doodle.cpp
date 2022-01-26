@@ -16,7 +16,7 @@ Core::Doodle::Doodle(std::shared_ptr<Core::Camera> camera, const Core::Vector2f&
 
 void Core::Doodle::update(double t, float dt)
 {
-        // reset player
+        // clear player
         if (_input_map->reset) {
                 setPosition({0, 1});
                 _input_map->reset = false;
