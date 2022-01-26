@@ -81,22 +81,29 @@ void Core::Car::update(double t, float dt)
 
         // acceleration
         if (_input_map->up > 0) {
-//                _force += _direction * _acceleration_power * _input_map->up;
-                if (going_forwards) {
-                        _force += _direction * _acceleration_power * _input_map->up;
-                } else {
-                        // braking
+                _force += _direction * _acceleration_power * _input_map->up;
+                // braking
+                if (!going_forwards) {
                         _force += _direction * _braking_power * _input_map->up;
                 }
+//                if (going_forwards) {
+//                        _force += _direction * _acceleration_power * _input_map->up;
+//                } else {
+//                         braking
+//                        _force += _direction * _braking_power * _input_map->up;
+//                }
         }
         if (_input_map->down > 0) {
-//                _force -= _direction * _reverse_acceleration_power * _input_map->down;
-                if (!going_forwards) {
-                        _force -= _direction * _reverse_acceleration_power * _input_map->down;
-                } else {
-                        // braking
+                _force -= _direction * _reverse_acceleration_power * _input_map->down;
+                if (going_forwards) {
                         _force -= _direction * _braking_power * _input_map->down;
                 }
+//                if (!going_forwards) {
+//                        _force -= _direction * _reverse_acceleration_power * _input_map->down;
+//                } else {
+                        // braking
+//                        _force -= _direction * _braking_power * _input_map->down;
+//                }
         }
 
         // raycasts
