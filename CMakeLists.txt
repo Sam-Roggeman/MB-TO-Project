@@ -15,10 +15,10 @@ file(GLOB_RECURSE source_automata_and_grammars
         src/AutomataAndGrammars/*.cpp
         src/AutomataAndGrammars/*.h
         )
-	#file(GLOB_RECURSE imageclasses
-	#    src/imageclasses/*.cpp
-	#    src/imageclasses/*.h
-	#    )
+file(GLOB_RECURSE imageclasses
+        src/imageclasses/*.cpp
+        src/imageclasses/*.h
+        )
 
 # Game representation
 file(GLOB_RECURSE source_game_representation
@@ -27,7 +27,7 @@ file(GLOB_RECURSE source_game_representation
         src/game_representation/*.h
         )
 
-add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai} ) #${imageclasses})
+add_executable(${APP_EXE} ${source_game_representation} ${source_automata_and_grammars} ${source_ai}) #${imageclasses})
 
 # Game logic static library
 file(GLOB_RECURSE source_game_logic
@@ -38,37 +38,37 @@ file(GLOB_RECURSE source_game_logic
 ADD_LIBRARY(SOURCE_GAME_LOGIC_LIB STATIC ${source_game_logic})
 
 # OpenCV
-if(WIN32)
+if (WIN32)
     link_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/opencv-4.x/build/bin/")
-endif()
+endif ()
 
-#find_package(OpenCV REQUIRED)
-#include_directories( ${OpenCV_INCLUDE_DIRS} )
+find_package(OpenCV REQUIRED)
+include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB) #${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(${APP_EXE} SOURCE_GAME_LOGIC_LIB ${OpenCV_LIBS})
 
 # (Windows) Path to SFML library
-if(WIN32)
+if (WIN32)
     set(SFML_ROOT C:\\Users\\samro\\Documents\\School\\2021-2022\\AP\\AP_Project_2021-2022\\SFML-2.5.1_WIN\\)
-endif()
+endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 find_package(SFML REQUIRED system window graphics network audio)
 if (SFML_FOUND)
     include_directories(${SFML_INCLUDE_DIR})
     target_link_libraries(${APP_EXE} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
-endif()
+endif ()
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
 # (Windows) Path to mingw64/bin
-if(WIN32)
-#    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
-#    set(MINGW_ROOT C:/mingw64/bin/)
-endif()
+if (WIN32)
+    #    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
+    #    set(MINGW_ROOT C:/mingw64/bin/)
+endif ()
 
 # (Windows) Copy dlls to build
-if(WIN32)
+if (WIN32)
     file(GLOB BINARY_DEP_DLLS "${SFML_INCLUDE_DIR}/../bin/*.dll")
     file(COPY ${BINARY_DEP_DLLS} DESTINATION ${CMAKE_BINARY_DIR})
     file(GLOB MINGW_DEP_DLLS "${MINGW_ROOT}/*.dll")
@@ -76,5 +76,5 @@ if(WIN32)
     #opencv dlls
     file(GLOB DLLS "${CMAKE_CURRENT_LIST_DIR}/libs/opencv-4.x/build/bin/*.dll")
     file(COPY ${DLLS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+endif ()
 

@@ -174,13 +174,17 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         Vector2f intersection1;
         Vector2f intersection2;
 
-        intersected = checkLinesegmentCircleIntersection(
-            raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
-            entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
+        // circle intersection
+        if (entity->getHitbox()->isCircle()) {
+                intersected = checkLinesegmentCircleIntersection(
+                    raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
+                    entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
 
-        if (intersected && !collided_twice)
-                collided_once = true;
+                if (intersected && !collided_twice)
+                        collided_once = true;
+        }
 
+        // polygon intersection
         for (int i = 0; i < points.size(); i++) {
                 Vector2f point1 = points[i];
                 Vector2f point2;
@@ -191,6 +195,10 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
                         point2 = points[0];
 
                 bool is_collinear;
+
+                intersected = false;
+                intersection1.clear();
+                intersection2.clear();
 
                 intersected =
                     checkLinesegmentLinesegmentIntersection(raycast->getOrigin(), raycast->getEndpoint(), point1,
@@ -216,16 +224,19 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         }
 
         if (collided_once) {
-                if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                if (!raycast->isActivated() ||
+                    (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                         raycast->setCollisionPoint(collision_point1);
         } else if (collided_twice) {
                 // get the closest point
                 if ((collision_point1 - raycast->getOrigin()).length() <
                     (collision_point2 - raycast->getOrigin()).length()) {
-                        if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() ||
+                            (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point1);
                 } else {
-                        if ((collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() ||
+                            (collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point2);
                 }
         } else {
@@ -549,46 +560,46 @@ bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vecto
 
         return false;
 }
-void World::initializeWalls(const std::string& inputname)
-{
-        imageProcessor imageProcessor{inputname};
-        unsigned int square_r = std::max(imageProcessor.getRows() / 50, 1u);
-        unsigned int wallpixels{};
-        Core::Vector2f wall_pos{};
-        Core::Vector2f wall_size{};
-
-        unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 2;
-        for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
-                for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
-                     base_col += square_r) {
-                        wallpixels = 0;
-                        for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
-                                for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
-                                        if (imageProcessor.isWall(row_offset + base_row, col_offset + base_col)) {
-                                                wallpixels++;
-                                        }
-                                }
-                        }
-                        if (wallpixels >= threshold) {
-                                wall_size = Core::Vector2f((float)square_r, (float)square_r);
-                                wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
-                                                          ((float)base_row + (float)square_r / 2));
-                                _walls.emplace_back(_entity_model_creator->createWallModel(
-                                    _camera,
-                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-                                                               (float)imageProcessor.getRows(), 0.0f),
-                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
-                                                         (float)imageProcessor.getRows(), 0.0f)));
-                        }
-                }
-        }
-        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
-        }
-
-        std::cout << _walls.size() << '\n';
-        meltWalls();
-        std::cout << _walls.size() << '\n';
-}
+// void World::initializeWalls(const std::string& inputname)
+//{
+//        imageProcessor imageProcessor{inputname};
+//        unsigned int square_r = std::max(imageProcessor.getRows() / 50, 1u);
+//        unsigned int wallpixels{};
+//        Core::Vector2f wall_pos{};
+//        Core::Vector2f wall_size{};
+//
+//        unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 2;
+//        for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
+//                for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
+//                     base_col += square_r) {
+//                        wallpixels = 0;
+//                        for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
+//                                for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
+//                                        if (imageProcessor.isWall(row_offset + base_row, col_offset + base_col)) {
+//                                                wallpixels++;
+//                                        }
+//                                }
+//                        }
+//                        if (wallpixels >= threshold) {
+//                                wall_size = Core::Vector2f((float)square_r, (float)square_r);
+//                                wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
+//                                                          ((float)base_row + (float)square_r / 2));
+//                                _walls.emplace_back(_entity_model_creator->createWallModel(
+//                                    _camera,
+//                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+//                                                               (float)imageProcessor.getRows(), 0.0f),
+//                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
+//                                                         (float)imageProcessor.getRows(), 0.0f)));
+//                        }
+//                }
+//        }
+//        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
+//        }
+//
+//        std::cout << _walls.size() << '\n';
+//        meltWalls();
+//        std::cout << _walls.size() << '\n';
+//}
 
 void World::meltWalls()
 {
