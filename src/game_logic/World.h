@@ -45,7 +45,7 @@ private:
         void loadMap(const std::string& filepath);
         void generateGroundTiles(float scale = 1);
 
-        void initializeWalls(const std::string& inputname, float scale);
+        void initializeWalls(const std::string& inputname, float scale = 1.0f);
 
         void meltWalls();
 
@@ -79,6 +79,8 @@ private:
         static bool checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
                                                        float cr, Vector2f& intersection1, Vector2f& intersection2,
                                                        bool& collided_twice);
+        void meltRows();
+        void meltColumns();
 };
 } // namespace Core
 

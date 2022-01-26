@@ -15,7 +15,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateGroundTiles(2);
 
         initializeWalls("assets/maps/Untitled3.png", 5);
-        //        loadWorld("world.save");
+        //        loadMap("assets/maps/world.save");
 
         Vector2f intersection1;
         Vector2f intersection2;
@@ -26,7 +26,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                   << std::endl;
 }
 
-World::~World() { saveMap("world.save"); }
+World::~World() { saveMap("assets/maps/world_last_run.save"); }
 
 void World::update(double t, float dt)
 {
@@ -70,7 +70,7 @@ void World::loadMap(const std::string& filepath)
         }
 
         else
-                cout << "Unable to open file";
+                cout << "Unable to open file" << std::endl;
 }
 
 void World::generateGroundTiles(float scale)
@@ -139,10 +139,90 @@ void World::initializeWalls(const std::string& inputname, float scale)
         std::cout << _walls.size() << '\n';
 }
 #else
-void World::initializeWalls(const std::string& inputname) { std::cerr << "Couldn't initialize walls." << std::endl; }
+void World::initializeWalls(const std::string& inputname, float scale)
+{
+        std::cerr << "Couldn't initialize walls." << std::endl;
+}
 #endif
 
 void World::meltWalls()
+{
+        meltColumns();
+        meltRows();
+}
+void World::meltRows()
+{
+        bool melted_wall = false;
+        std::shared_ptr<Wall> wall1_ptr{}, wall2_ptr{};
+        Vector2f diff{};
+        float lower_middle_border{}, higher_middle_border{}, highest_border{}, lowest_border{};
+
+        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
+                //                wall1_it = std::next(_walls.begin(),wall1_ind);
+                //                std::cout << "wall1 index: " << wall1_ind
+                //                <<"\n\tcenter:\t\t"<<wall1_it->get()->getPosition()<<
+                //                "\n\tviewsize:\t"<<wall1_it->get()->getAbsoluteViewSize() << "\n"; std::cout << "right
+                //                border: " <<
+                //                wall1_it->get()->getPosition().x+wall1_it->get()->getAbsoluteViewSize().x/2 << "\nleft
+                //                border: " <<
+                //                wall1_it->get()->getPosition().x-wall1_it->get()->getAbsoluteViewSize().x/2 << "\n";
+                for (unsigned int wall2_ind = wall1_ind + 1; wall2_ind < _walls.size(); wall2_ind++) {
+                        //                        wall2_it = std::next(_walls.begin(),wall2_ind);
+                        //                        std::cout << "wall2 index: " << wall2_ind
+                        //                        <<"\n\tcenter:\t\t"<<wall2_it->get()->getPosition()<<
+                        //                        "\n\tviewsize:\t"<<wall2_it->get()->getAbsoluteViewSize() << "\n";
+                        wall1_ptr = *std::next(_walls.begin(), wall1_ind);
+                        wall2_ptr = *std::next(_walls.begin(), wall2_ind);
+
+                        diff = {wall2_ptr->getPosition().x - wall1_ptr->getPosition().x,
+                                wall1_ptr->getPosition().y - wall2_ptr->getPosition().y};
+
+                        lower_middle_border =
+                            std::min(wall1_ptr->getPosition().y + wall1_ptr->getAbsoluteViewSize().y / 2.0f,
+                                     wall2_ptr->getPosition().y + wall2_ptr->getAbsoluteViewSize().y / 2.0f);
+                        higher_middle_border =
+                            std::max(wall1_ptr->getPosition().y - wall1_ptr->getAbsoluteViewSize().y / 2.0f,
+                                     wall2_ptr->getPosition().y - wall2_ptr->getAbsoluteViewSize().y / 2.0f);
+                        //                        if (wall2_ind == 8){
+                        //                                std::cout << "";
+                        //                        }
+                        //                        std::cout << "right border: " <<
+                        //                        wall2_ptr->getPosition().x+wall2_ptr->getAbsoluteViewSize().x/2 <<
+                        //                        "\nleft border: " <<
+                        //                        wall2_ptr->getPosition().x-wall2_ptr->getAbsoluteViewSize().x/2 <<
+                        //                        "\n";
+                        // check for row
+                        if (std::abs(diff.x) < 0.00001f &&
+                            std::abs(lower_middle_border - higher_middle_border) < 0.00001f) {
+                                //                                std::cout << "\t\t\tmerged: " << wall1_ind << " and "
+                                //                                <<wall2_ind<<"\n";
+
+                                lowest_border =
+                                    std::min(wall1_ptr->getPosition().y - wall1_ptr->getAbsoluteViewSize().y / 2.0f,
+                                             wall2_ptr->getPosition().y - wall2_ptr->getAbsoluteViewSize().y / 2.0f);
+                                highest_border =
+                                    std::max(wall1_ptr->getPosition().y + wall1_ptr->getAbsoluteViewSize().y / 2.0f,
+                                             wall2_ptr->getPosition().y + wall2_ptr->getAbsoluteViewSize().y / 2.0f);
+
+                                wall1_ptr->setScale(
+                                    {wall1_ptr->getScale().x, wall2_ptr->getScale().y + wall1_ptr->getScale().y});
+                                wall1_ptr->setPosition(
+                                    {wall1_ptr->getPosition().x, (lowest_border + highest_border) / 2.0f});
+                                _walls.erase(std::find(_walls.begin(), _walls.end(), wall2_ptr));
+                                melted_wall = true;
+                                //                                std::cout << std::endl;
+                        }
+                        // check for column
+                        //                        if (){
+                        //                                melted_wall = true;
+                        //                        }
+                }
+                //                std::cout << std::endl;
+        }
+        if (melted_wall)
+                meltRows();
+}
+void World::meltColumns()
 {
         bool melted_wall = false;
         std::shared_ptr<Wall> wall1_ptr{}, wall2_ptr{};
@@ -212,9 +292,8 @@ void World::meltWalls()
                 //                std::cout << std::endl;
         }
         if (melted_wall)
-                meltWalls();
+                meltColumns();
 }
-
 void World::updateEntities(double t, float dt)
 {
         // player
