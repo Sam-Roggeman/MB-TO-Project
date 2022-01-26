@@ -40,14 +40,12 @@ public:
 
         std::shared_ptr<InputMap> getInputMap();
 
-        void saveMap(const std::string& filepath);
-
-        void loadMap(const std::string& filepath);
-
 private:
+        void saveMap(const std::string& filepath);
+        void loadMap(const std::string& filepath);
         void generateGroundTiles(float scale = 1);
 
-        void initializeWalls(const std::string& inputname);
+        void initializeWalls(const std::string& inputname, float scale);
 
         void meltWalls();
 

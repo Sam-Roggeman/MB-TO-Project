@@ -7,22 +7,23 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2}, "assets/car_presets/physics_preset_1.xml",
+        _player = _entity_model_creator->createCarModel(_camera, {0, 0}, {0.2, 0.2},
+                                                        "assets/car_presets/physics_preset_1.xml",
                                                         "assets/car_presets/sprite_preset_1.xml");
         _player->setInputMap(_user_input_map);
 
-        _walls.push_back(_entity_model_creator->createWallModel(_camera, {1, 1}, {0.4, 0.4}));
-
         generateGroundTiles(2);
 
-        initializeWalls("assets/maps/Untitled3.png");
-//        loadMap("world.save");
+        initializeWalls("assets/maps/Untitled3.png", 1);
+        //        loadWorld("world.save");
 
         Vector2f intersection1;
         Vector2f intersection2;
         bool intersected_twice;
 
-        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2, intersected_twice) << std::endl;
+        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2,
+                                                        intersected_twice)
+                  << std::endl;
 }
 
 World::~World() { saveMap("world.save"); }
@@ -61,11 +62,9 @@ void World::loadMap(const std::string& filepath)
                         viewsize = {std::stof(line.substr(1, line.find(','))),
                                     std::stof(line.substr(line.find(',') + 1, line.find(')')))};
                         pos_string = line.substr(line.find(';') + 1, std::string::npos);
-                        position = {
-                            std::stof(pos_string.substr(pos_string.find('(') + 1, pos_string.find(','))),
-                            std::stof(pos_string.substr(pos_string.find(',') + 1, pos_string.find(')')))};
-                        _walls.emplace_back(
-                            _entity_model_creator->createWallModel(_camera, position, viewsize));
+                        position = {std::stof(pos_string.substr(pos_string.find('(') + 1, pos_string.find(','))),
+                                    std::stof(pos_string.substr(pos_string.find(',') + 1, pos_string.find(')')))};
+                        _walls.emplace_back(_entity_model_creator->createWallModel(_camera, position, viewsize));
                 }
                 myfile.close();
         }
@@ -100,10 +99,10 @@ void World::generateGroundTiles(float scale)
 }
 
 #ifdef WIN32
- void World::initializeWalls(const std::string& inputname)
+void World::initializeWalls(const std::string& inputname, float scale)
 {
         imageProcessor imageProcessor{inputname};
-        unsigned int square_r = std::max(imageProcessor.getRows() / 50, 1u);
+        unsigned int square_r = std::max(imageProcessor.getRows() / 100, 1u);
         unsigned int wallpixels{};
         Core::Vector2f wall_pos{};
         Core::Vector2f wall_size{};
@@ -126,14 +125,13 @@ void World::generateGroundTiles(float scale)
                                                           ((float)base_row + (float)square_r / 2));
                                 _walls.emplace_back(_entity_model_creator->createWallModel(
                                     _camera,
-                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-                                                               (float)imageProcessor.getRows(), 0.0f),
-                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
-                                                         (float)imageProcessor.getRows(), 0.0f)));
+                                    scale * _camera->projectCoordinate(wall_pos, 0.0f,
+                                                                       (float)imageProcessor.getColumns(),
+                                                                       (float)imageProcessor.getRows(), 0.0f),
+                                    scale * _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
+                                                                 (float)imageProcessor.getRows(), 0.0f)));
                         }
                 }
-        }
-        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
         }
 
         std::cout << _walls.size() << '\n';
@@ -141,10 +139,7 @@ void World::generateGroundTiles(float scale)
         std::cout << _walls.size() << '\n';
 }
 #else
-void World::initializeWalls(const std::string& inputname)
-{
-        std::cerr << "Couldn't initialize walls." << std::endl;
-}
+void World::initializeWalls(const std::string& inputname) { std::cerr << "Couldn't initialize walls." << std::endl; }
 #endif
 
 void World::meltWalls()
@@ -152,7 +147,7 @@ void World::meltWalls()
         bool melted_wall = false;
         std::shared_ptr<Wall> wall1_ptr{}, wall2_ptr{};
         Vector2f diff{};
-        float lower_border{}, higher_border{};
+        float lower_middle_border{}, higher_middle_border{}, highest_border{}, lowest_border{};
 
         for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
                 //                wall1_it = std::next(_walls.begin(),wall1_ind);
@@ -174,11 +169,12 @@ void World::meltWalls()
                         diff = {wall2_ptr->getPosition().x - wall1_ptr->getPosition().x,
                                 wall1_ptr->getPosition().y - wall2_ptr->getPosition().y};
 
-                        lower_border = std::min(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
-                                                wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
-                        higher_border =
-                            std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                        lower_middle_border =
+                            std::min(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
                                      wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                        higher_middle_border =
+                            std::max(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                     wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
                         //                        if (wall2_ind == 8){
                         //                                std::cout << "";
                         //                        }
@@ -188,12 +184,22 @@ void World::meltWalls()
                         //                        wall2_ptr->getPosition().x-wall2_ptr->getAbsoluteViewSize().x/2 <<
                         //                        "\n";
                         // check for row
-                        if (std::abs(diff.y) < 0.0001f && std::abs(lower_border - higher_border) < 0.0001f) {
+                        if (std::abs(diff.y) < 0.0001f &&
+                            std::abs(lower_middle_border - higher_middle_border) < 0.0001f) {
                                 //                                std::cout << "\t\t\tmerged: " << wall1_ind << " and "
                                 //                                <<wall2_ind<<"\n";
+
+                                lowest_border =
+                                    std::min(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                             wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                                highest_border =
+                                    std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                             wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+
                                 wall1_ptr->setScale(
                                     {wall1_ptr->getScale().x + wall2_ptr->getScale().x, wall1_ptr->getScale().y});
-                                wall1_ptr->move(diff / 2.0);
+                                wall1_ptr->setPosition(
+                                    {(lowest_border + highest_border) / 2.0f, wall1_ptr->getPosition().y});
                                 _walls.erase(std::find(_walls.begin(), _walls.end(), wall2_ptr));
                                 melted_wall = true;
                                 //                                std::cout << std::endl;
@@ -324,7 +330,8 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
                     raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
                     entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
 
-                if (intersected && !collided_twice) collided_once = true;
+                if (intersected && !collided_twice)
+                        collided_once = true;
         }
 
         // polygon intersection
@@ -343,9 +350,9 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
                 intersection1.clear();
                 intersection2.clear();
 
-                intersected = checkLinesegmentLinesegmentIntersection(
-                    raycast->getOrigin(), raycast->getEndpoint(), point1, point2, intersection1, intersection2,
-                    is_collinear);
+                intersected =
+                    checkLinesegmentLinesegmentIntersection(raycast->getOrigin(), raycast->getEndpoint(), point1,
+                                                            point2, intersection1, intersection2, is_collinear);
 
                 if (!intersected)
                         continue;
@@ -367,16 +374,19 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         }
 
         if (collided_once) {
-                if (!raycast->isActivated() || (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                if (!raycast->isActivated() ||
+                    (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                         raycast->setCollisionPoint(collision_point1);
         } else if (collided_twice) {
                 // get the closest point
                 if ((collision_point1 - raycast->getOrigin()).length() <
                     (collision_point2 - raycast->getOrigin()).length()) {
-                        if (!raycast->isActivated() || (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() ||
+                            (collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point1);
                 } else {
-                        if (!raycast->isActivated() || (collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        if (!raycast->isActivated() ||
+                            (collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
                                 raycast->setCollisionPoint(collision_point2);
                 }
         } else {
@@ -683,19 +693,21 @@ bool World::checkLinesegmentLinesegmentIntersection(const Vector2f& l1p1, const 
 }
 
 bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
-                                               float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice)
+                                               float cr, Vector2f& intersection1, Vector2f& intersection2,
+                                               bool& collided_twice)
 {
         float line_length = (l1p2 - l1p1).length();
         Vector2f axis = (l1p2 - l1p1).normalized();
 
         float cmp_projected = axis.dotProduct(cmp);
 
-//        std::cout << "line_length: " << line_length << std::endl;
-//        std::cout << "cmp_projected: " << cmp_projected << std::endl;
+        //        std::cout << "line_length: " << line_length << std::endl;
+        //        std::cout << "cmp_projected: " << cmp_projected << std::endl;
 
-//        if (cmp_projected - cr >= )
+        //        if (cmp_projected - cr >= )
 
-        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2)) return true;
+        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2))
+                return true;
 
         return false;
 }
