@@ -63,7 +63,7 @@ file(COPY assets DESTINATION ${CMAKE_BINARY_DIR})
 
 # (Windows) Path to mingw64/bin
 if(WIN32)
-    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
+#    set(MINGW_ROOT "C:\\Program Files\\Mingw\\mingw64\\bin")
 #    set(MINGW_ROOT C:/mingw64/bin/)
 endif()
 

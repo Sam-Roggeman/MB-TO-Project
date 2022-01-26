@@ -14,6 +14,12 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateGroundTiles(2);
 
         //        initializeWalls("assets/maps/Untitled2.png");
+
+        Vector2f intersection1;
+        Vector2f intersection2;
+        bool intersected_twice;
+
+        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2, intersected_twice) << std::endl;
 }
 
 World::~World() = default;
@@ -206,14 +212,17 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
         }
 
         if (collided_once) {
-                raycast->setCollisionPoint(collision_point1);
+                if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                        raycast->setCollisionPoint(collision_point1);
         } else if (collided_twice) {
                 // get the closest point
                 if ((collision_point1 - raycast->getOrigin()).length() <
                     (collision_point2 - raycast->getOrigin()).length()) {
-                        raycast->setCollisionPoint(collision_point1);
+                        if ((collision_point1 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                                raycast->setCollisionPoint(collision_point1);
                 } else {
-                        raycast->setCollisionPoint(collision_point2);
+                        if ((collision_point2 - raycast->getOrigin()).length() < raycast->getCollisionLength())
+                                raycast->setCollisionPoint(collision_point2);
                 }
         } else {
                 return false;
@@ -521,6 +530,18 @@ bool World::checkLinesegmentLinesegmentIntersection(const Vector2f& l1p1, const 
 bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
                                                float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice)
 {
+        float line_length = (l1p2 - l1p1).length();
+        Vector2f axis = (l1p2 - l1p1).normalized();
+
+        float cmp_projected = axis.dotProduct(cmp);
+
+//        std::cout << "line_length: " << line_length << std::endl;
+//        std::cout << "cmp_projected: " << cmp_projected << std::endl;
+
+//        if (cmp_projected - cr >= )
+
+        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2)) return true;
+
         return false;
 }
 
