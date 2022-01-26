@@ -1,6 +1,7 @@
 #ifndef PHYSICS_ENGINE_WORLD_H
 #define PHYSICS_ENGINE_WORLD_H
 
+#include "../imageclasses/imageProcessor.h"
 #include "data_structures/Raycast.h"
 #include "entities/IEntityModelCreator.h"
 #include "entities/Wall.h"
@@ -28,6 +29,38 @@ private:
         std::shared_ptr<InputMap> _user_input_map;
 
 public:
+        void saveWorld(std::string filename)
+        {
+                ofstream myfile{"assets/" + filename};
+
+                for (std::shared_ptr<Core::Wall> wall : _walls) {
+                        myfile << wall->getAbsoluteViewSize() << ';' << wall->getPosition() << std::endl;
+                }
+
+                myfile.close();
+        }
+        void loadWorld(std::string filename)
+        {
+                string line{}, pos_string{};
+                ifstream myfile("assets/" + filename);
+                Vector2f viewsize{}, position{};
+                if (myfile.is_open()) {
+                        while (getline(myfile, line)) {
+                                viewsize = {std::stof(line.substr(1, line.find(','))),
+                                            std::stof(line.substr(line.find(',') + 1, line.find(')')))};
+                                pos_string = line.substr(line.find(';') + 1, line.npos);
+                                position = {
+                                    std::stof(pos_string.substr(pos_string.find('(') + 1, pos_string.find(','))),
+                                    std::stof(pos_string.substr(pos_string.find(',') + 1, pos_string.find(')')))};
+                                _walls.emplace_back(
+                                    _entity_model_creator->createWallModel(_camera, position, viewsize));
+                        }
+                        myfile.close();
+                }
+
+                else
+                        cout << "Unable to open file";
+        }
         World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
               float y_max);
 
@@ -44,7 +77,7 @@ private:
 
         void checkCollisions();
 
-        // void initializeWalls(const std::string& inputname);
+        void initializeWalls(const std::string& inputname);
 
         static bool checkCollision(const std::shared_ptr<EntityModel>& entity1,
                                    const std::shared_ptr<EntityModel>& entity2, bool collision_response = true);
@@ -71,7 +104,9 @@ private:
                                                             bool& is_collinear);
 
         static bool checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
-                                                       float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice);
+                                                       float cr, Vector2f& intersection1, Vector2f& intersection2,
+                                                       bool& collided_twice);
+        void meltWalls();
 };
 } // namespace Core
 

@@ -20,8 +20,10 @@ void Core::EntityModel::update(double t, float dt)
         _velocity += dt * _acceleration;
 
         // remove small velocities
-        if (_velocity.x < 1.e-2f && _velocity.x > -1.e-2f) _velocity.x = 0;
-        if (_velocity.y < 1.e-2f && _velocity.y > -1.e-2f) _velocity.y = 0;
+        if (_velocity.x < 1.e-2f && _velocity.x > -1.e-2f)
+                _velocity.x = 0;
+        if (_velocity.y < 1.e-2f && _velocity.y > -1.e-2f)
+                _velocity.y = 0;
 
         // reset forces/accelerations
         _force = {0, 0};
@@ -122,6 +124,10 @@ Core::Vector2f Core::EntityModel::getVelocity() const { return _velocity; }
 void Core::EntityModel::setVelocity(const Core::Vector2f& velocity) { _velocity = velocity; }
 
 Core::Vector2f Core::EntityModel::getViewSize() const { return _view_size; }
+Core::Vector2f Core::EntityModel::getAbsoluteViewSize() const
+{
+        return {_view_size.x * _scale.x, _view_size.y * _scale.y};
+}
 
 Core::Vector2f Core::EntityModel::getRepresentationViewSize() const { return _camera->projectSize(_view_size); }
 

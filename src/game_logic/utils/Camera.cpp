@@ -79,10 +79,8 @@ Core::Vector2f Core::Camera::projectCoordinate(const Vector2f& point, float x_mi
                                                float y_max) const
 {
         Vector2f new_point;
-
         float alpha_x{0};
         float alpha_y{0};
-
         // check if the limits are valid and calculate alpha value
         if (x_max - x_min != 0)
                 alpha_x = (point.x - x_min) / (x_max - x_min);
@@ -92,11 +90,10 @@ Core::Vector2f Core::Camera::projectCoordinate(const Vector2f& point, float x_mi
                 alpha_y = (point.y - y_min) / (y_max - y_min);
         else
                 alpha_y = 0;
-
         // linear interpolation of coordinate
         new_point = {CoreUtils::lerp(_camera_x_bounderies.x, _camera_x_bounderies.y, alpha_x),
                      CoreUtils::lerp(_camera_y_bounderies.x, _camera_y_bounderies.y, alpha_y)};
-
+        //        new_point.y -= _camera_y_bounderies.y/2 ;
         return new_point;
 }
 

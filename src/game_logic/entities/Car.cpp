@@ -1,7 +1,7 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), brain(5,4,4,2) //mohammed
+    : EntityModel(std::move(camera), position, view_size), brain(5, 4, 4, 2) // mohammed
 {
         _direction = {0, 1};
         _mass = 1500;
@@ -27,22 +27,23 @@ void Core::Car::update(double t, float dt)
 {
         vector<float> raycast_lengths;
         for (auto& raycast : _raycasts) {
-                raycast_lengths.push_back((raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
+                raycast_lengths.push_back(
+                    (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
         }
         vector<float> neural_outputs = brain(raycast_lengths);
-//        int maxIndex = 0;
-//        float max = 0;
-//        for(int i = 0; i < neural_outputs.size(); i++) {
-//                if(neural_outputs[i] > max) {
-//                        max = neural_outputs[i];
-//                        maxIndex = i;
-//                }
-//        }
-//        _input_map->up = 1;
-//        //std::cout << neural_outputs[0] << std::endl;
-//        _input_map->down = neural_outputs[1];
-//        _input_map->right = neural_outputs[2];
-//        _input_map->left = neural_outputs[3];
+        //        int maxIndex = 0;
+        //        float max = 0;
+        //        for(int i = 0; i < neural_outputs.size(); i++) {
+        //                if(neural_outputs[i] > max) {
+        //                        max = neural_outputs[i];
+        //                        maxIndex = i;
+        //                }
+        //        }
+        //        _input_map->up = 1;
+        //        //std::cout << neural_outputs[0] << std::endl;
+        //        _input_map->down = neural_outputs[1];
+        //        _input_map->right = neural_outputs[2];
+        //        _input_map->left = neural_outputs[3];
 
         // reset
         if (_input_map->reset) {
@@ -81,7 +82,7 @@ void Core::Car::update(double t, float dt)
 
         // acceleration
         if (_input_map->up > 0) {
-//                _force += _direction * _acceleration_power * _input_map->up;
+                //                _force += _direction * _acceleration_power * _input_map->up;
                 if (going_forwards) {
                         _force += _direction * _acceleration_power * _input_map->up;
                 } else {
@@ -90,7 +91,7 @@ void Core::Car::update(double t, float dt)
                 }
         }
         if (_input_map->down > 0) {
-//                _force -= _direction * _reverse_acceleration_power * _input_map->down;
+                //                _force -= _direction * _reverse_acceleration_power * _input_map->down;
                 if (!going_forwards) {
                         _force -= _direction * _reverse_acceleration_power * _input_map->down;
                 } else {
@@ -103,7 +104,7 @@ void Core::Car::update(double t, float dt)
         for (auto& raycast : _raycasts) {
                 raycast->setActivated(false);
         }
-
+        _camera->setPosition(_position);
         // camera
         _camera->setPosition(_position);
 
@@ -138,10 +139,10 @@ void Core::Car::steer(float angle_radian, float direction_sign, float dt)
 void Core::Car::loadPhysicsPreset(const std::string& preset_file_path)
 {
 
-        std::map<std::string,std::string> values;
+        std::map<std::string, std::string> values;
         SLR slr = SLR("assets/Json_Xml/Xml.json");
 
-        slr.ParseXML(values,preset_file_path);
+        slr.ParseXML(values, preset_file_path);
 
         _acceleration_power = std::stof(values["acceleration_power"]);
         _reverse_acceleration_power = std::stof(values["reverse_acceleration_power"]);

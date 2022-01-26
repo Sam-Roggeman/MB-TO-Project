@@ -13,16 +13,19 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         generateGroundTiles(2);
 
-        //        initializeWalls("assets/maps/Untitled2.png");
+        //        initializeWalls("assets/maps/Untitled3.png");
+        loadWorld("world.save");
 
         Vector2f intersection1;
         Vector2f intersection2;
         bool intersected_twice;
 
-        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2, intersected_twice) << std::endl;
+        std::cout << checkLinesegmentCircleIntersection({1, 0.1}, {2, 0}, {2, 0.5}, 1, intersection1, intersection2,
+                                                        intersected_twice)
+                  << std::endl;
 }
 
-World::~World() = default;
+World::~World() { saveWorld("world.save"); }
 
 void World::update(double t, float dt)
 {
@@ -175,7 +178,8 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
             raycast->getOrigin(), raycast->getEndpoint(), entity->getHitbox()->getOrigin(),
             entity->getHitbox()->getRadius().x, intersection1, intersection2, collided_twice);
 
-        if (intersected && !collided_twice) collided_once = true;
+        if (intersected && !collided_twice)
+                collided_once = true;
 
         for (int i = 0; i < points.size(); i++) {
                 Vector2f point1 = points[i];
@@ -188,9 +192,9 @@ bool World::checkCollision(const std::shared_ptr<Core::Raycast>& raycast, const 
 
                 bool is_collinear;
 
-                intersected = checkLinesegmentLinesegmentIntersection(
-                    raycast->getOrigin(), raycast->getEndpoint(), point1, point2, intersection1, intersection2,
-                    is_collinear);
+                intersected =
+                    checkLinesegmentLinesegmentIntersection(raycast->getOrigin(), raycast->getEndpoint(), point1,
+                                                            point2, intersection1, intersection2, is_collinear);
 
                 if (!intersected)
                         continue;
@@ -526,66 +530,125 @@ bool World::checkLinesegmentLinesegmentIntersection(const Vector2f& l1p1, const 
         // lines are not parallel but do not intersect
         return false;
 }
-
 bool World::checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
-                                               float cr, Vector2f& intersection1, Vector2f& intersection2, bool& collided_twice)
+                                               float cr, Vector2f& intersection1, Vector2f& intersection2,
+                                               bool& collided_twice)
 {
         float line_length = (l1p2 - l1p1).length();
         Vector2f axis = (l1p2 - l1p1).normalized();
 
         float cmp_projected = axis.dotProduct(cmp);
 
-//        std::cout << "line_length: " << line_length << std::endl;
-//        std::cout << "cmp_projected: " << cmp_projected << std::endl;
+        //        std::cout << "line_length: " << line_length << std::endl;
+        //        std::cout << "cmp_projected: " << cmp_projected << std::endl;
 
-//        if (cmp_projected - cr >= )
+        //        if (cmp_projected - cr >= )
 
-        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2)) return true;
+        if (cmp_projected >= axis.dotProduct(l1p1) && cmp_projected <= axis.dotProduct(l1p2))
+                return true;
 
         return false;
 }
+void World::initializeWalls(const std::string& inputname)
+{
+        imageProcessor imageProcessor{inputname};
+        unsigned int square_r = std::max(imageProcessor.getRows() / 50, 1u);
+        unsigned int wallpixels{};
+        Core::Vector2f wall_pos{};
+        Core::Vector2f wall_size{};
 
-// void World::initializeWalls(const std::string& inputname)
-//{
-//         imageProcessor imageProcessor{inputname};
-//         unsigned int brick_side = std::max(imageProcessor.getRows() / 25, 1u);
-//         unsigned int wallpixels{};
-//         Core::Vector2f wall_pos{};
-//         Core::Vector2f wall_size{};
-//
-//         unsigned threshold = (unsigned int)((float)brick_side * (float)brick_side) / 2;
-//         for (unsigned int brickrow = 0; brickrow < imageProcessor.size() - brick_side; brickrow += brick_side) {
-//                 for (unsigned int brick_col = 0; brick_col < imageProcessor.at(brickrow).size() - brick_side;
-//                      brick_col += brick_side) {
-//                         wallpixels = 0;
-//                         for (unsigned int row = 0; row < brick_side; row++) {
-//                                 for (unsigned int col = 0; col < brick_side; col++) {
-//                                         if (imageProcessor.isWall(row + brickrow, col + brick_col)) {
-//                                                 wallpixels++;
-//                                         }
-//                                 }
-//                         }
-//                         if (wallpixels >= threshold) {
-//                                 wall_size = Core::Vector2f((float)brick_side, (float)brick_side);
-//                                 wall_pos = Core::Vector2f((float)brickrow + (float)brick_side / 2,
-//                                                           (float)brick_col + (float)brick_side / 2);
-//                                 Vector2f wall_new_pos =
-//                                     _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-//                                                                (float)imageProcessor.getRows(), 0.0f);
-//
-//                                 std::cout << wall_pos << std::endl;
-//                                 std::cout << wall_new_pos << std::endl;
-//
-//                                 std::cout << "**************" << std::endl;
-//
-//                                 _walls.insert(_entity_model_creator->createWallModel(
-//                                     _camera,
-//                                     _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
-//                                                                (float)imageProcessor.getRows(), 0.0f),
-//                                     _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
-//                                                          (float)imageProcessor.getRows(), 0.0f)));
-//                         }
-//                 }
-//         }
-// }
+        unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 2;
+        for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
+                for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
+                     base_col += square_r) {
+                        wallpixels = 0;
+                        for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
+                                for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
+                                        if (imageProcessor.isWall(row_offset + base_row, col_offset + base_col)) {
+                                                wallpixels++;
+                                        }
+                                }
+                        }
+                        if (wallpixels >= threshold) {
+                                wall_size = Core::Vector2f((float)square_r, (float)square_r);
+                                wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
+                                                          ((float)base_row + (float)square_r / 2));
+                                _walls.emplace_back(_entity_model_creator->createWallModel(
+                                    _camera,
+                                    _camera->projectCoordinate(wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+                                                               (float)imageProcessor.getRows(), 0.0f),
+                                    _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
+                                                         (float)imageProcessor.getRows(), 0.0f)));
+                        }
+                }
+        }
+        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
+        }
+
+        std::cout << _walls.size() << '\n';
+        meltWalls();
+        std::cout << _walls.size() << '\n';
+}
+
+void World::meltWalls()
+{
+        bool melted_wall = false;
+        std::shared_ptr<Wall> wall1_ptr{}, wall2_ptr{};
+        Vector2f diff{};
+        float lower_border{}, higher_border{};
+
+        for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
+                //                wall1_it = std::next(_walls.begin(),wall1_ind);
+                //                std::cout << "wall1 index: " << wall1_ind
+                //                <<"\n\tcenter:\t\t"<<wall1_it->get()->getPosition()<<
+                //                "\n\tviewsize:\t"<<wall1_it->get()->getAbsoluteViewSize() << "\n"; std::cout << "right
+                //                border: " <<
+                //                wall1_it->get()->getPosition().x+wall1_it->get()->getAbsoluteViewSize().x/2 << "\nleft
+                //                border: " <<
+                //                wall1_it->get()->getPosition().x-wall1_it->get()->getAbsoluteViewSize().x/2 << "\n";
+                for (unsigned int wall2_ind = wall1_ind + 1; wall2_ind < _walls.size(); wall2_ind++) {
+                        //                        wall2_it = std::next(_walls.begin(),wall2_ind);
+                        //                        std::cout << "wall2 index: " << wall2_ind
+                        //                        <<"\n\tcenter:\t\t"<<wall2_it->get()->getPosition()<<
+                        //                        "\n\tviewsize:\t"<<wall2_it->get()->getAbsoluteViewSize() << "\n";
+                        wall1_ptr = *std::next(_walls.begin(), wall1_ind);
+                        wall2_ptr = *std::next(_walls.begin(), wall2_ind);
+
+                        diff = {wall2_ptr->getPosition().x - wall1_ptr->getPosition().x,
+                                wall1_ptr->getPosition().y - wall2_ptr->getPosition().y};
+
+                        lower_border = std::min(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                                wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                        higher_border =
+                            std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                     wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                        //                        if (wall2_ind == 8){
+                        //                                std::cout << "";
+                        //                        }
+                        //                        std::cout << "right border: " <<
+                        //                        wall2_ptr->getPosition().x+wall2_ptr->getAbsoluteViewSize().x/2 <<
+                        //                        "\nleft border: " <<
+                        //                        wall2_ptr->getPosition().x-wall2_ptr->getAbsoluteViewSize().x/2 <<
+                        //                        "\n";
+                        // check for row
+                        if (std::abs(diff.y) < 0.0001f && std::abs(lower_border - higher_border) < 0.0001f) {
+                                //                                std::cout << "\t\t\tmerged: " << wall1_ind << " and "
+                                //                                <<wall2_ind<<"\n";
+                                wall1_ptr->setScale(
+                                    {wall1_ptr->getScale().x + wall2_ptr->getScale().x, wall1_ptr->getScale().y});
+                                wall1_ptr->move(diff / 2.0);
+                                _walls.erase(std::find(_walls.begin(), _walls.end(), wall2_ptr));
+                                melted_wall = true;
+                                //                                std::cout << std::endl;
+                        }
+                        // check for column
+                        //                        if (){
+                        //                                melted_wall = true;
+                        //                        }
+                }
+                //                std::cout << std::endl;
+        }
+        if (melted_wall)
+                meltWalls();
+}
 } // namespace Core
