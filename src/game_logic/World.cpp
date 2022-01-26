@@ -14,7 +14,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         generateGroundTiles(2);
 
-        initializeWalls("assets/maps/Untitled3.png", 1);
+        initializeWalls("assets/maps/Untitled3.png", 5);
         //        loadWorld("world.save");
 
         Vector2f intersection1;
@@ -170,11 +170,11 @@ void World::meltWalls()
                                 wall1_ptr->getPosition().y - wall2_ptr->getPosition().y};
 
                         lower_middle_border =
-                            std::min(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
-                                     wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
-                        higher_middle_border =
-                            std::max(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                            std::min(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
                                      wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                        higher_middle_border =
+                            std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                     wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
                         //                        if (wall2_ind == 8){
                         //                                std::cout << "";
                         //                        }
@@ -190,11 +190,11 @@ void World::meltWalls()
                                 //                                <<wall2_ind<<"\n";
 
                                 lowest_border =
-                                    std::min(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
-                                             wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
-                                highest_border =
-                                    std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                    std::min(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
                                              wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
+                                highest_border =
+                                    std::max(wall1_ptr->getPosition().x + wall1_ptr->getAbsoluteViewSize().x / 2.0f,
+                                             wall2_ptr->getPosition().x + wall2_ptr->getAbsoluteViewSize().x / 2.0f);
 
                                 wall1_ptr->setScale(
                                     {wall1_ptr->getScale().x + wall2_ptr->getScale().x, wall1_ptr->getScale().y});
