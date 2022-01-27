@@ -9,17 +9,44 @@ using namespace std;
 class FFNeuralNetwork
 {
 private:
-        int inputNodes, hiddenNodes, outputNodes, _hiddenLayers;
-        vector<vector<vector<float>>> weights;
-        vector<float> forward(vector<float> inputs);
+        vector<vector<float>> _biases;
+        vector<vector<vector<float>>> _weights;
+        int _num_layers;
+        vector<int> _neuronsPerLayer;
+
+
+
+
+
+        //int inputNodes, hiddenNodes, outputNodes, _hiddenLayers;
+        //vector<vector<vector<float>>> weights;
+        //vector<float> forward(vector<float> inputs);
 public:
-        FFNeuralNetwork(int input, int hidden, int output, int hiddenLayers);
-        FFNeuralNetwork(const FFNeuralNetwork& a) = default;
-        FFNeuralNetwork crossover(FFNeuralNetwork& partner);
-        void mutate(float mr);
+        FFNeuralNetwork(const vector<int>&);
+        void mutateOneWeightGene(FFNeuralNetwork& parent);
+        void mutateOneBiasesGene(FFNeuralNetwork& parent);
+        void uniformCrossOverWeights(FFNeuralNetwork& parent1, FFNeuralNetwork& parent2, FFNeuralNetwork& child2);
+        void uniformCrossOverBiases(FFNeuralNetwork& parent1, FFNeuralNetwork& parent2, FFNeuralNetwork& child2);
+        vector<float> feedforward(vector<float> inputs);
         vector<float> operator()(vector<float> inputs) {
-                return forward(inputs);
+                return feedforward(inputs);
         }
+
+
+
+
+
+
+
+
+
+        // FFNeuralNetwork(int input, int hidden, int output, int hiddenLayers);
+        // FFNeuralNetwork(const FFNeuralNetwork& a) = default;
+        // FFNeuralNetwork crossover(FFNeuralNetwork& partner);
+        // void mutate(float mr);
+        // vector<float> operator()(vector<float> inputs) {
+        //         return forward(inputs);
+        // }
 };
 
 #endif
