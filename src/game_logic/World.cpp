@@ -31,7 +31,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateCars(_spawn_location, _spawn_direction.normalized(), 2, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
 
-        generateGroundTiles(2);
+        generateGroundTiles(3);
 }
 
 World::~World() { saveMap("assets/maps/world_last_run.save"); }
@@ -475,14 +475,14 @@ void World::generateCars(const Vector2f& position, const Vector2f& direction, un
                 if (physics_preset.empty() && sprite_preset.empty()) {
                         std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
                             _camera, position, {0.2, 0.2}, physics_preset, sprite_preset);
-                        new_car->rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI / 2));
+                        new_car->reset(position, direction);
                         new_car->setAIControlled(true);
                         new_car->setCheckpointCount(_checkpoints.size());
                         _cars.push_back(new_car);
                 } else {
                         std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
                             _camera, position, {0.2, 0.2}, physics_preset, sprite_preset);
-                        new_car->rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI / 2));
+                        new_car->reset(position, direction);
                         new_car->setAIControlled(true);
                         new_car->setCheckpointCount(_checkpoints.size());
                         _cars.push_back(new_car);
