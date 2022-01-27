@@ -36,9 +36,17 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                      "assets/car_presets/physics_preset_1.xml", "assets/car_presets/sprite_preset_1.xml");
 }
 
-World::~World()
-{
+        if (CoreConstants::loadAI) {
+                if (_populationCars > 1) {
+                        _cars[0]->getBrain() = FFNeuralNetwork("assets/neuralNetID0");
+                        _cars[1]->getBrain() = FFNeuralNetwork("assets/neuralNetID1");
+                }
+        }
+
+World::~World() {
         saveMap("assets/maps/world_last_run.save");
+        _cars[0]->getBrain().exportWeights();
+        _cars[1]->getBrain().exportWeights();
         std::cout << "Destructing The World ... " << std::endl;
 }
 
@@ -705,20 +713,16 @@ void World::updateAI(double t, float dt)
 
                 _generation++;
                 std::cout << "Generation " << _generation << std::endl;
-                std::shared_ptr<Car> aux = _cars[_populationCars - 1];
+                std::shared_ptr<Car> aux = _cars[_populationCars-1];
                 _cars.pop_back();
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
-                        return lhs->getFitness() < rhs->getFitness();
-                });
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
 
-                for (int i = 2; i < _populationCars - 1; i += 2) {
-                        _cars[i]->getBrain().uniformCrossOverWeights(_cars[0]->getBrain(), _cars[1]->getBrain(),
-                                                                     _cars[i + 1]->getBrain());
-                        _cars[i]->getBrain().uniformCrossOverBiases(_cars[0]->getBrain(), _cars[1]->getBrain(),
-                                                                    _cars[i + 1]->getBrain());
+                for (int i = 2; i < _populationCars-1; i += 2) {
+                        _cars[i]->getBrain().uniformCrossOverWeights(_cars[0]->getBrain(),_cars[1]->getBrain(),_cars[i+1]->getBrain());
+                        _cars[i]->getBrain().uniformCrossOverBiases(_cars[0]->getBrain(),_cars[1]->getBrain(),_cars[i+1]->getBrain());
                 }
 
-                for (int i = 2; i < _populationCars - 1; i++) {
+                for (int i = 2; i < _populationCars-1; i++) {
                         for (int j = 0; j < _mutationRate; j++) {
                                 _cars[i]->getBrain().mutateOneWeightGene(aux->getBrain());
                                 aux->getBrain().mutateOneWeightGene(_cars[i]->getBrain());
@@ -739,8 +743,8 @@ void World::updateAI(double t, float dt)
                 //                 carParrent2 = temp;
                 //         }
 
-                //         _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check
-                //         crossover _cars[i]->getBrain().mutate(mr);
+                //         _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check crossover
+                //         _cars[i]->getBrain().mutate(mr);
 
                 // }
                 // for (int i = 0; i < 2; i++) {
@@ -757,6 +761,7 @@ void World::updateAI(double t, float dt)
 
                 // neural network mutation
         }
+
 }
 
 void World::updateCamera(double t, float dt)

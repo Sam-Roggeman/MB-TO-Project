@@ -25,6 +25,7 @@ extern const Core::Vector2f spawn_direction;
 
 // AI
 extern const float time_limit;
+extern const bool loadAI;
 } // namespace CoreConstants
 
 #endif // UABA2_AP_PROJECT_CORECONSTANTS_H

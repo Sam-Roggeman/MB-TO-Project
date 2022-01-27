@@ -13,6 +13,7 @@ private:
         vector<vector<vector<float>>> _weights;
         int _num_layers;
         vector<int> _neuronsPerLayer;
+        static int __id;
 
 
 
@@ -23,6 +24,8 @@ private:
         //vector<float> forward(vector<float> inputs);
 public:
         FFNeuralNetwork(const vector<int>&);
+        FFNeuralNetwork(const char* filename);
+        void exportWeights();
         void mutateOneWeightGene(FFNeuralNetwork& parent);
         void mutateOneBiasesGene(FFNeuralNetwork& parent);
         void uniformCrossOverWeights(FFNeuralNetwork& parent1, FFNeuralNetwork& parent2, FFNeuralNetwork& child2);

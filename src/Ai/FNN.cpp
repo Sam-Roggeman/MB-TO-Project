@@ -1,7 +1,64 @@
 #include "FNN.h"
 #include <iostream>
+#include <fstream>
 
 #include "../game_logic/utils/Random.h"
+
+int FFNeuralNetwork::__id = 0;
+
+
+
+FFNeuralNetwork::FFNeuralNetwork(const char* filename) {
+        freopen(filename,"r",stdin);
+        cin >> _num_layers;
+        for (int i = 0; i < _num_layers; i++) {
+                int s;
+                cin >> s;
+                _neuronsPerLayer.push_back(s);
+        }
+        for (int i = 1; i < _num_layers; i++) {
+                _biases.push_back(vector<float>());
+                for (int j = 0; j < _neuronsPerLayer[i]; j++) {
+                        float num;
+                        cin >> num;
+                        _biases[i-1].push_back(num);
+                }
+        }
+        for (int i = 0; i < _num_layers-1; i++) {
+                _weights.emplace_back(vector<vector<float>>());
+                for (int j = 0; j < _neuronsPerLayer[i+1]; j++) {
+                        _weights[i].emplace_back(vector<float>());
+                        for (int k = 0; k < _neuronsPerLayer[i]; k++) {
+                                float num;
+                                cin >> num;
+                                _weights[i][j].push_back(num);
+                        }
+                }
+        }
+}
+
+void FFNeuralNetwork::exportWeights() {
+        ofstream neural("assets/neuralNetID" + std::to_string(__id));
+        __id++;
+        neural << _num_layers << "\n\n";
+        for (int i = 0; i < _num_layers; i++) {
+                neural << _neuronsPerLayer[i] << " ";
+        }
+        neural << "\n\n";
+        for (int i = 0; i < _num_layers-1; i++) {
+                for (int j = 0; j < _neuronsPerLayer[i+1]; j++) {
+                        neural << _biases[i][j] << " ";
+                }
+        }
+        neural << "\n\n";
+        for (int i = 0; i < _num_layers-1; i++) {
+                for (int j = 0; j < _neuronsPerLayer[i+1]; j++) {
+                        for (int k = 0; k < _neuronsPerLayer[i]; k++) {
+                                neural << _weights[i][j][k] << " ";
+                        }
+                }
+        }
+}
 
 FFNeuralNetwork::FFNeuralNetwork(const vector<int>& neuronsPerLayer) {//(int input, int hidden, int output, int hiddenLayers) {
 //        weights.emplace_back(vector<vector<float>>());
@@ -19,15 +76,15 @@ FFNeuralNetwork::FFNeuralNetwork(const vector<int>& neuronsPerLayer) {//(int inp
 //        weights.emplace_back(vector<vector<float>>());
 //        weights[2].push_back(vector<float>{0.07041649692263191,5.634486592049883,-0.025719215623043468,-17.044099190414634,1.1814644869103548});
 
-        int _num_layers = neuronsPerLayer.size();
+        _num_layers = neuronsPerLayer.size();
         _neuronsPerLayer = neuronsPerLayer;
-        for (int i = 1; i < neuronsPerLayer.size(); i++) {
+        for (int i = 1; i < _num_layers; i++) {
                 _biases.push_back(vector<float>());
                 for (int j = 0; j < neuronsPerLayer[i]; j++) {
                         _biases[i-1].push_back(Core::Random::Normal(0,1));
                 }
         }
-        for (int i = 0; i < neuronsPerLayer.size()-1; i++) {
+        for (int i = 0; i < _num_layers-1; i++) {
                 _weights.emplace_back(vector<vector<float>>());
                 for (int j = 0; j < neuronsPerLayer[i+1]; j++) {
                         _weights[i].emplace_back(vector<float>());
