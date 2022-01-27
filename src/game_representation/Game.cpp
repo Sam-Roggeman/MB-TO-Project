@@ -24,8 +24,7 @@ void Representation::Game::run()
                     std::bind(&Core::World::update, _world.get(), std::placeholders::_1, std::placeholders::_2));
 
                 // fps counter
-                //                _window->setTitle(std::to_string(std::lround(Core::Stopwatch::getInstance().getAverageFps())));
-                _window->setTitle(_world->getInputMap()->mouse_pos_world.toString());
+                _window->setTitle(std::to_string(std::lround(Core::Stopwatch::getInstance().getAverageFps())));
 
                 // draw
                 draw();
