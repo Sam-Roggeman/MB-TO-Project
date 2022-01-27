@@ -2,10 +2,10 @@
 
 Representation::Game::Game()
     : _screen_width(RepresentationConstants::screen_width), _screen_height(RepresentationConstants::screen_height),
-      _window(new sf::RenderWindow(sf::VideoMode(_screen_width, _screen_height), "SFML_test")),
       _running(true), _entity_model_creator(new Representation::EntityModelCreator)
 {
         _world = std::make_unique<Core::World>(_entity_model_creator, 0, _screen_width, _screen_height, 0);
+        _window = std::make_unique<sf::RenderWindow>(sf::VideoMode(_screen_width, _screen_height), "SFML_test");
 }
 
 Representation::Game::~Game() = default;

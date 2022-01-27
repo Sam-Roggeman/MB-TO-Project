@@ -44,7 +44,7 @@ void Core::Car::update(double t, float dt)
                 //                }
                 //        }
 
-                std::cout << neural_outputs[0] << std::endl;
+//                std::cout << neural_outputs[0] << std::endl;
 
                 if (neural_outputs[0] > 0.666)
                         _input_map->right = 0.1;
