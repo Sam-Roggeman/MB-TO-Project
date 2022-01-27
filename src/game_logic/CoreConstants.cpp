@@ -10,7 +10,7 @@ const float CoreConstants::camera_view_x_max = 2;
 const float CoreConstants::camera_view_y_min = -1.125;
 const float CoreConstants::camera_view_y_max = 1.125;
 
-const bool CoreConstants::generate_player = false;
+const bool CoreConstants::generate_player = true;
 
 const Core::Vector2f CoreConstants::spawn_location = {2, 0};
 const Core::Vector2f CoreConstants::spawn_direction = {0, 1};

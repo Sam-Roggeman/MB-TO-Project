@@ -14,7 +14,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         // load the map
         generateGroundTiles(4);
 #ifdef WIN32
-        generateMapFromImage("assets/maps/Untitled3.png", 5);
+        //        generateMapFromImage("assets/maps/Untitled3.png", 5);
+        loadMap("assets/maps/world_.save");
 #else
         //                loadMap("assets/maps/world.save");
         generateTestMap();
@@ -66,21 +67,22 @@ void World::saveMap(const std::string& filepath) const
         ofstream myfile{filepath};
 
         // start
-        myfile << "Start:\t\t\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        myfile << "Start:\t\t\t\t\t\t\t\t#(Position.x,Position.y);(Direction.x,Direction.y)" << std::endl;
         myfile << _spawn_location << ';' << _spawn_direction << std::endl;
 
         // finishline
-        myfile << "FinishLine:\t\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        myfile << "FinishLine:\t\t\t\t\t\t\t#(Position.x,Position.y);(Direction.x,Direction.y)" << std::endl;
         myfile << _finish_line->getPosition() << ';' << _finish_line->getRaycast(0)->getDirection() << std::endl;
 
         // checkpoints
-        myfile << "CheckPoints:\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        myfile << "CheckPoints:\t\t\t\t\t\t#(Position.x,Position.y);(Direction.x,Direction.y);(Length)" << std::endl;
         for (const std::shared_ptr<Core::Checkpoint>& checkpoint : _checkpoints) {
-                myfile << checkpoint->getPosition() << ';' << checkpoint->getRaycast(0)->getDirection() << std::endl;
+                myfile << checkpoint->getPosition() << ';' << checkpoint->getRaycast(0)->getDirection() << ";("
+                       << checkpoint->getRaycast(0)->getLength() << ')' << std::endl;
         }
 
         // walls
-        myfile << "Walls:\t\t\t\t\t\t\t\t#(Position.x,Position.y),(ViewSize.x,ViewSize.y)" << std::endl;
+        myfile << "Walls:\t\t\t\t\t\t\t\t#(Position.x,Position.y);(ViewSize.x,ViewSize.y)" << std::endl;
         for (const std::shared_ptr<Core::Wall>& wall : _walls) {
                 myfile << wall->getPosition() << ';' << wall->getAbsoluteViewSize() << std::endl;
         }
@@ -89,9 +91,10 @@ void World::saveMap(const std::string& filepath) const
 
 void World::loadMap(const std::string& filepath)
 {
-        string line{}, viewsize_string{}, direction_string{};
+        string line{}, viewsize_string{}, direction_string{}, length_string{};
         ifstream myfile(filepath);
         Vector2f viewsize{}, position{}, direction{};
+        float length{};
 
         // sorted common case -> least common
         enum loading_state
@@ -135,12 +138,16 @@ void World::loadMap(const std::string& filepath)
                                 position = {std::stof(line.substr(1, line.find(','))),
                                             std::stof(line.substr(line.find(',') + 1, line.find(')')))};
                                 direction_string = line.substr(line.find(';') + 1, std::string::npos);
+                                length_string =
+                                    direction_string.substr(direction_string.find(';') + 1, std::string::npos);
                                 direction = {std::stof(direction_string.substr(direction_string.find('(') + 1,
                                                                                direction_string.find(','))),
                                              std::stof(direction_string.substr(direction_string.find(',') + 1,
                                                                                direction_string.find(')')))};
+                                length = std::stof(
+                                    length_string.substr(length_string.find('(') + 1, length_string.find(')')));
                                 _checkpoints.emplace_back(_entity_model_creator->createCheckpointModel(
-                                    _camera, position, {}, direction.normalized(), direction.length()));
+                                    _camera, position, {}, direction.normalized(), length));
                                 _checkpoints.at(_checkpoints.size() - 1)->setShowRaycast(true);
                                 break;
                         case loading_finish:
