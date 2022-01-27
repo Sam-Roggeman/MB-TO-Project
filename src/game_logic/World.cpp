@@ -11,10 +11,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         // set the camera
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        // load the map
-        generateGroundTiles(4);
 #ifdef WIN32
-        //        generateMapFromImage("assets/maps/Untitled3.png", 5);
         loadMap("assets/maps/world_.save");
 #else
         loadMap("assets/maps/world_.save");
@@ -28,7 +25,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                 _player->setCameraFocus(true);
         }
 
-        _populationCars = 11; //MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        _populationCars = 3; //MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
         _mutationRate = 60;
 
         generateCars(_spawn_location, _spawn_direction.normalized(), _populationCars, "assets/car_presets/physics_preset_1.xml",
@@ -743,7 +740,7 @@ void World::updateAI(double t, float dt)
 
                 // reset
                 for (auto& car : _cars) {
-                        car->reset({2, 0}, {0, 1});
+                        car->reset(_spawn_location, _spawn_direction);
                 }
                 _generation_time = 0;
 

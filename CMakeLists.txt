@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3)
-#set(CMAKE_CXX_FLAGS "-pthread")
-set(CMAKE_CXX_FLAGS "-pthread -o3")
+set(CMAKE_CXX_FLAGS "-pthread")
+#set(CMAKE_CXX_FLAGS "-pthread -o3")
 set(CMAKE_CXX_STANDARD 20)
 set(APP_EXE RacingSimulator)
 
