@@ -62,7 +62,7 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 void FFNeuralNetwork::mutate(float mr) {
 	for(vector<vector<float>>& w : weights) {
  		for (int i = 0; i < w.size(); i++) {
- 			for (int k = 0; k < w[i].size(); k++) {
+ 			for (int k = 0; k < w[0].size(); k++) {
  				float rand_number = Core::Random::uniformReal(0,1);//(-1,1); //!!!!!!!!!!!!!!!
  				if (rand_number<mr) {
  					w[i][k] += Core::Random::Normal(0,1)/5.0f; //!!!!!!!!!
@@ -120,14 +120,14 @@ void FFNeuralNetwork::mutate(float mr) {
          return forwarded;
  }
 
- FFNeuralNetwork FFNeuralNetwork::crossover(const FFNeuralNetwork& partner)
+ FFNeuralNetwork FFNeuralNetwork::crossover(FFNeuralNetwork& partner)
  {
          FFNeuralNetwork child = FFNeuralNetwork(inputNodes, hiddenNodes, outputNodes, hiddenLayers);
          for (int i = 0; i < weights.size(); i++) {
-                 int randomColumn = floor(Core::Random::uniformReal(0.0f,(float) weights[0].size())); //!!!!!!!!
-                 int randomRow = floor(Core::Random::uniformReal(0.0f, (float) weights.size()));       //!!!!!!!!
-                 for (int k = 0; k < weights.size(); k++) {
-                         for (int c = 0; c < weights[0].size(); c++) {
+                 int randomColumn = floor(Core::Random::uniformReal(0.0f,(float) weights[i][0].size())); //!!!!!!!!
+                 int randomRow = floor(Core::Random::uniformReal(0.0f, (float) weights[i].size()));       //!!!!!!!!
+                 for (int k = 0; k < weights[i].size(); k++) {
+                         for (int c = 0; c < weights[i][0].size(); c++) {
                                  if ((k < randomRow) || (k == randomRow && c <= randomColumn)) {
                                          child.weights[i][k][c] = weights[i][k][c];
                                  } else {

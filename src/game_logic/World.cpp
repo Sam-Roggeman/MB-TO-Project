@@ -1,5 +1,5 @@
 #include "World.h"
-
+#include "utils/Random.h"
 namespace Core {
 World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
              float y_max)
@@ -37,7 +37,42 @@ void World::update(double t, float dt)
         }
 
         if (all_cars_dead_or_finished) {
+
+                //config
+                int nBest = 2;
+                int nPopulation = _cars.size();
+                float mr = 0.7;
+
+                //data
+                vector<Car*> bestCars(nBest,nullptr);
+
                 generation++;
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
+                for (int i = 0; i < nBest; i++) {
+                        bestCars[i] = _cars[i].get();
+                }
+                std::cout << "hello\n";
+                for (int i = nBest; i < nPopulation-2; i++) {
+                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+
+                        if (Random::uniformReal(0,1) > 0.5f) {
+                                Car* temp = carParrent1;
+                                carParrent1 = carParrent2;
+                                carParrent2 = temp;
+                        }
+
+                        _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check crossover
+                        std::cout << "william\n";
+                        _cars[i]->getBrain().mutate(mr);
+                        std::cout << "william22222\n";
+
+                }
+                std::cout << "hello2222\n";
+                for (int i = 0; i < 2; i++) {
+                        Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+                        carP->getBrain().mutate(mr);
+                }
 
                 std::cout << "generation: " << generation << std::endl;
 
@@ -573,7 +608,7 @@ void World::checkCollisions()
                         for (auto& raycast : car->getRaycasts()) {
                                 checkCollision(raycast, wall);
                         }
-                        
+
                         // checkpoints
                         for (auto& checkpoint : _checkpoints) {
                                 std::shared_ptr<Raycast> raycast = checkpoint->getRaycast(0);
@@ -582,7 +617,7 @@ void World::checkCollisions()
                                         raycast->clear();
                                 }
                         }
-                        
+
                         // finish line
                         std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
                         if (checkCollision(raycast, car)) {

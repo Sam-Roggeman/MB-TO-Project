@@ -15,7 +15,7 @@ private:
 public:
         FFNeuralNetwork(int input, int hidden, int output, int hiddenLayers);
         FFNeuralNetwork(const FFNeuralNetwork& a) = default;
-        FFNeuralNetwork crossover(const FFNeuralNetwork& partner);
+        FFNeuralNetwork crossover(FFNeuralNetwork& partner);
         void mutate(float mr);
         vector<float> operator()(vector<float> inputs) {
                 return forward(inputs);

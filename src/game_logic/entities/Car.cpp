@@ -215,7 +215,7 @@ float Core::Car::getTotalTime() const { return _total_time; }
 void Core::Car::calculateFitness()
 {
         if (_fitness == 0) {
-                _fitness = 1;
+                _fitness = _total_checkpoint_count-_checkpoint_ids.size()+_total_time;
 //                std::cout << "time: " << _total_time << std::endl;
 //
 //                std::cout << "checkpoints: " << _total_checkpoint_count << std::endl;
@@ -224,7 +224,11 @@ void Core::Car::calculateFitness()
         }
 }
 
-float Core::Car::getFitness() { return _fitness; }
+float Core::Car::getFitness() const { return _fitness; }
+
+FFNeuralNetwork& Core::Car::getBrain() {
+        return _brain;
+}
 
 void Core::Car::setCheckpointCount(unsigned int count) { _total_checkpoint_count = count; }
 

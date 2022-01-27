@@ -67,7 +67,9 @@ public:
         float getTotalTime() const;
 
         void calculateFitness();
-        float getFitness();
+        float getFitness() const;
+
+        FFNeuralNetwork& getBrain();
 
         void setCheckpointCount(unsigned int count);
 
