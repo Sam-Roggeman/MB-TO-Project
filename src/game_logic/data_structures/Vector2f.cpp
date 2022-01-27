@@ -193,8 +193,3 @@ Core::Vector2f Core::Vector2f::scaled(const Core::Vector2f& scale, const Core::V
 
         return scaled_point;
 }
-std::ifstream& Core::operator<<(std::ifstream& os, const Core::Vector2f& vector)
-{
-        os << vector;
-        return os;
-}

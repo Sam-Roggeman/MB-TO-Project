@@ -62,7 +62,6 @@ public:
         bool operator>=(const Vector2f& other) const;
 
         friend std::ostream& operator<<(std::ostream& os, const Vector2f& vector);
-        friend std::ifstream& operator<<(std::ifstream& os, const Vector2f& vector);
 
         bool empty() const;
 
