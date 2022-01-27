@@ -14,8 +14,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         // load the map
         generateGroundTiles(5);
 #ifdef WIN32
-        //        generateMapFromImage("assets/maps/Untitled3.png", 5);
-        loadMap("assets/maps/world_.save");
+        generateMapFromImage("assets/maps/Untitled3.png", 5);
+//        loadMap("assets/maps/world_.save");
 #else
         loadMap("assets/maps/world_.save");
 //        generateTestMap();
@@ -212,18 +212,19 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
 {
         imageProcessor imageProcessor{inputname};
         {
-                unsigned int square_r = std::max(imageProcessor.getRows() / 30, 1u);
+                unsigned int x_diff = std::max(imageProcessor.getColumns() / 500, 1u);
+                unsigned int y_diff = std::max(imageProcessor.getRows() / 20, 1u);
                 unsigned int wallpixels{};
                 Core::Vector2f wall_pos{}, wall_size{};
-                unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 50;
+                unsigned threshold = (unsigned int)((float)x_diff * (float)y_diff) / 10;
 
                 // generate walls
-                for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
-                        for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
-                             base_col += square_r) {
+                for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - y_diff; base_row += y_diff) {
+                        for (unsigned int base_col = 0; base_col < imageProcessor.getColumns() - x_diff;
+                             base_col += x_diff) {
                                 wallpixels = 0;
-                                for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
-                                        for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
+                                for (unsigned int row_offset = 0; row_offset < y_diff; row_offset++) {
+                                        for (unsigned int col_offset = 0; col_offset < x_diff; col_offset++) {
                                                 if (imageProcessor.isWall(row_offset + base_row,
                                                                           col_offset + base_col)) {
                                                         wallpixels++;
@@ -231,10 +232,10 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                                         }
                                 }
                                 if (wallpixels >= threshold) {
-                                        wall_size = Core::Vector2f((float)square_r, (float)square_r);
+                                        wall_size = Core::Vector2f((float)x_diff, (float)y_diff);
                                         wall_size.y = -wall_size.y;
-                                        wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
-                                                                  ((float)base_row + (float)square_r / 2));
+                                        wall_pos = Core::Vector2f((float)base_col + (float)x_diff / 2,
+                                                                  ((float)base_row + (float)y_diff / 2));
                                         _walls.emplace_back(_entity_model_creator->createWallModel(
                                             _camera,
                                             scale * _camera->projectCoordinateCustomToWorld(
@@ -248,6 +249,7 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                 }
         }
         meltWalls();
+        std::cout << _walls.size() << std::endl;
         {
                 Core::Vector2f checkpoint_pos{}, checkpoint_vector{};
                 std::shared_ptr<Checkpoint> new_checkpoint{};
