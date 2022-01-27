@@ -4,7 +4,7 @@ namespace Core {
 World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
              float y_max)
     : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap),
-      generation(0)
+      _generation(0), _generation_time(0), _time_limit(60)
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
@@ -19,6 +19,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateCars({2, 0}, {0, 1}, 20, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
 
+        generateGroundTiles(2);
 
         //        initializeWalls("assets/maps/Untitled2.png", 5);
         //        loadMapd("assets/maps/world.save");
@@ -29,6 +30,23 @@ World::~World() { saveMap("assets/maps/world_last_run.save"); }
 void World::update(double t, float dt)
 {
         // logic
+
+        // game speed
+        if (_user_input_map->custom1) {
+                Stopwatch::getInstance().setPhysicsSpeed(1);
+        }
+        if (_user_input_map->custom2) {
+                Stopwatch::getInstance().setPhysicsSpeed(5);
+        }
+        if (_user_input_map->custom3) {
+                Stopwatch::getInstance().setPhysicsSpeed(10);
+        }
+        if (_user_input_map->custom4) {
+                Stopwatch::getInstance().setPhysicsSpeed(20);
+        }
+
+        // AI
+        _generation_time += dt;
         bool all_cars_dead_or_finished = true;
         for (auto& car : _cars) {
                 if (!(car->isDead() || car->reachedFinish())) {
@@ -36,17 +54,27 @@ void World::update(double t, float dt)
                 }
         }
 
-        if (all_cars_dead_or_finished) {
+        // time limit
+        if (_generation_time > _time_limit) {
+                for (auto& car : _cars) {
+                        car->calculateFitness();
+                }
+                all_cars_dead_or_finished = true;
+                std::cout << "Time Out!" << std::endl;
+        }
 
+        if (all_cars_dead_or_finished) {
                 //config
                 int nBest = 2;
-                int nPopulation = _cars.size();
+                int nPopulation = static_cast<int>(_cars.size());
                 float mr = 0.7;
 
                 //data
                 vector<Car*> bestCars(nBest,nullptr);
 
-                generation++;
+                _generation++;
+                std::cout << "Generation " << _generation << std::endl;
+
                 sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
                 for (int i = 0; i < nBest; i++) {
                         bestCars[i] = _cars[i].get();
@@ -70,9 +98,11 @@ void World::update(double t, float dt)
                         carP->getBrain().mutate(mr);
                 }
 
+                // reset
                 for (auto& car : _cars) {
                         car->reset({2, 0}, {0, 1});
                 }
+                _generation_time = 0;
 
                 // neural network mutation
         }

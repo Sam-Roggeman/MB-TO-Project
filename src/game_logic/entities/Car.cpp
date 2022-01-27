@@ -1,7 +1,7 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), _brain(5, 4, 1, 2), _ai_controlled(false), _is_dead(false),
+    : EntityModel(std::move(camera), position, view_size), _brain(3, 4, 4, 2), _ai_controlled(false), _is_dead(false),
       _reached_finish(false), _total_distance_traveled(0), _total_time(0), _fitness(0)
 {
         _direction = {0, 1};
@@ -46,12 +46,17 @@ void Core::Car::update(double t, float dt)
 
 //                std::cout << neural_outputs[0] << std::endl;
 
-                if (neural_outputs[0] > 0.666)
-                        _input_map->right = 0.1;
-                else if (neural_outputs[0] < 0.333)
-                    _input_map->left = 0.1;
-                _input_map->up = 0.2;
-                _input_map->down = 0;
+                _input_map->up = neural_outputs[0];
+                _input_map->down = neural_outputs[1];
+                _input_map->left = neural_outputs[2];
+                _input_map->right = neural_outputs[3];
+
+//                if (neural_outputs[0] > 0.666)
+//                        _input_map->right = 0.1;
+//                else if (neural_outputs[0] < 0.333)
+//                    _input_map->left = 0.1;
+//                _input_map->up = 0.2;
+//                _input_map->down = 0;
 
 //                _input_map->right = neural_outputs[2];
 //                _input_map->left = neural_outputs[3];
@@ -222,9 +227,9 @@ float Core::Car::getTotalTime() const { return _total_time; }
 void Core::Car::calculateFitness()
 {
         if (_fitness == 0) {
-                _fitness = _total_checkpoint_count - _checkpoint_ids.size() + _total_time;
+                _fitness = static_cast<float>(_total_checkpoint_count) - static_cast<float>(_checkpoint_ids.size()) + _total_time;
+
                 //                std::cout << "time: " << _total_time << std::endl;
-                //
                 //                std::cout << "checkpoints: " << _total_checkpoint_count << std::endl;
                 //                std::cout << "checkpoints not triggered: " << _total_checkpoint_count -
                 //                _checkpoint_ids.size() << std::endl; std::cout << "******************" << std::endl;

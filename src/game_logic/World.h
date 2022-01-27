@@ -33,7 +33,9 @@ private:
 
         std::shared_ptr<InputMap> _user_input_map;
 
-        unsigned int generation;
+        unsigned int _generation;
+        float _generation_time;
+        float _time_limit;
 
 public:
         World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
