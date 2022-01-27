@@ -13,6 +13,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateGroundTiles(4);
 #ifdef WIN32
         generateMapFromImage("assets/maps/Untitled3.png", 5);
+//        loadMap("assets/maps/world_.save");
 #else
         //                loadMap("assets/maps/world.save");
         generateTestMap();
@@ -107,7 +108,7 @@ void World::update(double t, float dt)
 
                 // reset
                 for (auto& car : _cars) {
-                        car->reset(_spawn_location, _spawn_direction);
+                        car->reset(_spawn_location, _spawn_direction.normalized());
                 }
                 _generation_time = 0;
 
@@ -127,26 +128,108 @@ void World::saveMap(const std::string& filepath) const
 {
         ofstream myfile{filepath};
 
-        for (const std::shared_ptr<Core::Wall>& wall : _walls) {
-                myfile << wall->getAbsoluteViewSize() << ';' << wall->getPosition() << std::endl;
+        // start
+        myfile << "Start:\t\t\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        myfile << _spawn_location << ';' << _spawn_direction << std::endl;
+
+        // finishline
+        myfile << "FinishLine:\t\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        myfile << _finish_line->getPosition() << ';' << _finish_line->getRaycast(0)->getDirection() << std::endl;
+
+        // checkpoints
+        myfile << "CheckPoints:\t\t\t\t\t\t#(Position.x,Position.y),(Direction.x,Direction.y)" << std::endl;
+        for (const std::shared_ptr<Core::Checkpoint>& checkpoint : _checkpoints) {
+                myfile << checkpoint->getPosition() << ';' << checkpoint->getRaycast(0)->getDirection() << std::endl;
         }
 
+        // walls
+        myfile << "Walls:\t\t\t\t\t\t\t\t#(Position.x,Position.y),(ViewSize.x,ViewSize.y)" << std::endl;
+        for (const std::shared_ptr<Core::Wall>& wall : _walls) {
+                myfile << wall->getPosition() << ';' << wall->getAbsoluteViewSize() << std::endl;
+        }
         myfile.close();
 }
 
 void World::loadMap(const std::string& filepath)
 {
-        string line{}, pos_string{};
+        string line{}, viewsize_string{}, direction_string{};
         ifstream myfile(filepath);
-        Vector2f viewsize{}, position{};
+        Vector2f viewsize{}, position{}, direction{};
+
+        // sorted common case -> least common
+        enum loading_state
+        {
+                loading_walls,
+                loading_checkpoints,
+                loading_finish,
+                loading_start,
+        };
+
+        loading_state current_loadingstate{};
+
         if (myfile.is_open()) {
                 while (getline(myfile, line)) {
-                        viewsize = {std::stof(line.substr(1, line.find(','))),
-                                    std::stof(line.substr(line.find(',') + 1, line.find(')')))};
-                        pos_string = line.substr(line.find(';') + 1, std::string::npos);
-                        position = {std::stof(pos_string.substr(pos_string.find('(') + 1, pos_string.find(','))),
-                                    std::stof(pos_string.substr(pos_string.find(',') + 1, pos_string.find(')')))};
-                        _walls.emplace_back(_entity_model_creator->createWallModel(_camera, position, viewsize));
+                        if (line.find("Start:") < line.size()) {
+                                current_loadingstate = loading_start;
+                                continue;
+                        } else if (line.find("FinishLine:") < line.size()) {
+                                current_loadingstate = loading_finish;
+                                continue;
+                        } else if (line.find("CheckPoints:") < line.size()) {
+                                current_loadingstate = loading_checkpoints;
+                                continue;
+                        } else if (line.find("Walls:") < line.size()) {
+                                current_loadingstate = loading_walls;
+                                continue;
+                        }
+                        switch (current_loadingstate) {
+                        case loading_walls:
+                                position = {std::stof(line.substr(1, line.find(','))),
+                                            std::stof(line.substr(line.find(',') + 1, line.find(')')))};
+                                viewsize_string = line.substr(line.find(';') + 1, std::string::npos);
+                                viewsize = {std::stof(viewsize_string.substr(viewsize_string.find('(') + 1,
+                                                                             viewsize_string.find(','))),
+                                            std::stof(viewsize_string.substr(viewsize_string.find(',') + 1,
+                                                                             viewsize_string.find(')')))};
+                                _walls.emplace_back(
+                                    _entity_model_creator->createWallModel(_camera, position, viewsize));
+                                break;
+                        case loading_checkpoints:
+                                position = {std::stof(line.substr(1, line.find(','))),
+                                            std::stof(line.substr(line.find(',') + 1, line.find(')')))};
+                                direction_string = line.substr(line.find(';') + 1, std::string::npos);
+                                direction = {std::stof(direction_string.substr(direction_string.find('(') + 1,
+                                                                               direction_string.find(','))),
+                                             std::stof(direction_string.substr(direction_string.find(',') + 1,
+                                                                               direction_string.find(')')))};
+                                _checkpoints.emplace_back(_entity_model_creator->createCheckpointModel(
+                                    _camera, position, {}, direction.normalized(), direction.length()));
+                                _checkpoints.at(_checkpoints.size() - 1)->setShowRaycast(true);
+                                break;
+                        case loading_finish:
+                                position = {std::stof(line.substr(1, line.find(','))),
+                                            std::stof(line.substr(line.find(',') + 1, line.find(')')))};
+                                direction_string = line.substr(line.find(';') + 1, std::string::npos);
+                                direction = {std::stof(direction_string.substr(direction_string.find('(') + 1,
+                                                                               direction_string.find(','))),
+                                             std::stof(direction_string.substr(direction_string.find(',') + 1,
+                                                                               direction_string.find(')')))};
+                                _finish_line = _entity_model_creator->createCheckpointModel(
+                                    _camera, position, {}, direction.normalized(), direction.length());
+                                _finish_line->setShowRaycast(true);
+                                break;
+                        case loading_start:
+                                position = {std::stof(line.substr(1, line.find(','))),
+                                            std::stof(line.substr(line.find(',') + 1, line.find(')')))};
+                                direction_string = line.substr(line.find(';') + 1, std::string::npos);
+                                direction = {std::stof(direction_string.substr(direction_string.find('(') + 1,
+                                                                               direction_string.find(','))),
+                                             std::stof(direction_string.substr(direction_string.find(',') + 1,
+                                                                               direction_string.find(')')))};
+                                _spawn_location = position;
+                                _spawn_direction = direction;
+                                break;
+                        }
                 }
                 myfile.close();
         }
