@@ -5,11 +5,11 @@
 #include "../imageclasses/imageProcessor.h"
 #endif
 #include "data_structures/Raycast.h"
+#include "entities/Checkpoint.h"
 #include "entities/IEntityModelCreator.h"
 #include "entities/Wall.h"
 #include "utils/InputMap.h"
 #include "utils/Stopwatch.h"
-#include "entities/Checkpoint.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -33,6 +33,9 @@ private:
 
         std::shared_ptr<InputMap> _user_input_map;
 
+        Vector2f _spawn_location{2, 0}, _spawn_direction{0, 1};
+
+        unsigned int generation;
         unsigned int _generation;
         float _generation_time;
         float _time_limit;
@@ -54,7 +57,7 @@ private:
 
         void generateGroundTiles(float scale = 1);
 
-        void initializeWalls(const std::string& inputname, float scale = 1.0f);
+        void generateMapFromImage(const std::string& inputname, float scale = 1.0f);
 
         void meltWalls();
 
@@ -65,7 +68,7 @@ private:
         void generateSquareWallEnclosure(const Vector2f& origin, float size, float wall_thickness);
 
         void generateCars(const Vector2f& position, const Vector2f& direction, unsigned int amount,
-                          const std::string& physics_preset="", const std::string& sprite_preset="");
+                          const std::string& physics_preset = "", const std::string& sprite_preset = "");
 
         void generateTestMap();
 

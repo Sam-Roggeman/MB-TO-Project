@@ -6,23 +6,27 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
     : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap),
       _generation(0), _generation_time(0), _time_limit(30)
 {
+        // set the camera
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
-        _player = _entity_model_creator->createCarModel(_camera, {2, 0}, {0.2, 0.2},
+        // load the map
+        generateGroundTiles(4);
+#ifdef WIN32
+        generateMapFromImage("assets/maps/Untitled3.png", 5);
+#else
+        //                loadMap("assets/maps/world.save");
+        generateTestMap();
+#endif
+        // spawn the player
+        _player = _entity_model_creator->createCarModel(_camera, _spawn_location, {0.2, 0.2},
                                                         "assets/car_presets/physics_preset_1.xml",
                                                         "assets/car_presets/sprite_preset_1.xml");
-        _player->setInputMap(_user_input_map);
         _player->setCameraFocus(true);
+        _player->setInputMap(_user_input_map);
 
-        generateTestMap();
-
-        generateCars({2, 0}, {0, 1}, 12, "assets/car_presets/physics_preset_1.xml",
+        // spawn the cars
+        generateCars(_spawn_location, _spawn_direction.normalized(), 2, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
-
-        generateGroundTiles(2);
-
-        //        initializeWalls("assets/maps/Untitled2.png", 5);
-        //        loadMapd("assets/maps/world.save");
 }
 
 World::~World() { saveMap("assets/maps/world_last_run.save"); }
@@ -64,44 +68,46 @@ void World::update(double t, float dt)
         }
 
         if (all_cars_dead_or_finished) {
-                //config
+                // config
                 int nBest = 2;
                 int nPopulation = static_cast<int>(_cars.size());
                 float mr = 0.8;
 
-                //data
-                vector<Car*> bestCars(nBest,nullptr);
+                // data
+                vector<Car*> bestCars(nBest, nullptr);
 
                 _generation++;
                 std::cout << "Generation " << _generation << std::endl;
 
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
+                        return lhs->getFitness() < rhs->getFitness();
+                });
                 for (int i = 0; i < nBest; i++) {
                         bestCars[i] = _cars[i].get();
                 }
-                for (int i = nBest; i < nPopulation-2; i++) {
-                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+                for (int i = nBest; i < nPopulation - 2; i++) {
+                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
+                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
 
-                        if (Random::uniformReal(0,1) > 0.5f) {
+                        if (Random::uniformReal(0, 1) > 0.5f) {
                                 Car* temp = carParrent1;
                                 carParrent1 = carParrent2;
                                 carParrent2 = temp;
                         }
 
-                        _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check crossover
+                        _cars[i]->getBrain() =
+                            carParrent1->getBrain().crossover(carParrent2->getBrain()); // check crossover
                         _cars[i]->getBrain().mutate(mr);
-
                 }
                 for (int i = 0; i < 2; i++) {
-                        Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-                        _cars[nPopulation-i-1]->getBrain() = carP->getBrain();
-                        _cars[nPopulation-i-1]->getBrain().mutate(mr);
+                        Car* carP = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
+                        _cars[nPopulation - i - 1]->getBrain() = carP->getBrain();
+                        _cars[nPopulation - i - 1]->getBrain().mutate(mr);
                 }
 
                 // reset
                 for (auto& car : _cars) {
-                        car->reset({2, 0}, {0, 1});
+                        car->reset(_spawn_location, _spawn_direction);
                 }
                 _generation_time = 0;
 
@@ -175,44 +181,95 @@ void World::generateGroundTiles(float scale)
 }
 
 #ifdef WIN32
-void World::initializeWalls(const std::string& inputname, float scale)
+void World::generateMapFromImage(const std::string& inputname, float scale)
 {
         imageProcessor imageProcessor{inputname};
-        unsigned int square_r = std::max(imageProcessor.getRows() / 100, 1u);
-        unsigned int wallpixels{};
-        Core::Vector2f wall_pos{};
-        Core::Vector2f wall_size{};
+        {
+                unsigned int square_r = std::max(imageProcessor.getRows() / 100, 1u);
+                unsigned int wallpixels{};
+                Core::Vector2f wall_pos{}, wall_size{};
+                unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 10;
 
-        unsigned threshold = (unsigned int)((float)square_r * (float)square_r) / 2;
-        for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
-                for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
-                     base_col += square_r) {
-                        wallpixels = 0;
-                        for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
-                                for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
-                                        if (imageProcessor.isWall(row_offset + base_row, col_offset + base_col)) {
-                                                wallpixels++;
+                // generate walls
+                for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - square_r; base_row += square_r) {
+                        for (unsigned int base_col = 0; base_col < imageProcessor.at(base_row).size() - square_r;
+                             base_col += square_r) {
+                                wallpixels = 0;
+                                for (unsigned int row_offset = 0; row_offset < square_r; row_offset++) {
+                                        for (unsigned int col_offset = 0; col_offset < square_r; col_offset++) {
+                                                if (imageProcessor.isWall(row_offset + base_row,
+                                                                          col_offset + base_col)) {
+                                                        wallpixels++;
+                                                }
                                         }
                                 }
-                        }
-                        if (wallpixels >= threshold) {
-                                wall_size = Core::Vector2f((float)square_r, (float)square_r);
-                                wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
-                                                          ((float)base_row + (float)square_r / 2));
-                                _walls.emplace_back(_entity_model_creator->createWallModel(
-                                    _camera,
-                                    scale * _camera->projectCoordinate(wall_pos, 0.0f,
-                                                                       (float)imageProcessor.getColumns(),
-                                                                       (float)imageProcessor.getRows(), 0.0f),
-                                    scale * _camera->projectSize(wall_size, 0.0f, (float)imageProcessor.getColumns(),
-                                                                 (float)imageProcessor.getRows(), 0.0f)));
+                                if (wallpixels >= threshold) {
+                                        wall_size = Core::Vector2f((float)square_r, (float)square_r);
+                                        wall_size.y = -wall_size.y;
+                                        wall_pos = Core::Vector2f((float)base_col + (float)square_r / 2,
+                                                                  ((float)base_row + (float)square_r / 2));
+                                        _walls.emplace_back(_entity_model_creator->createWallModel(
+                                            _camera,
+                                            scale * _camera->projectCoordinate(wall_pos, 0.0f,
+                                                                               (float)imageProcessor.getColumns(),
+                                                                               (float)imageProcessor.getRows(), 0.0f),
+                                            scale * _camera->projectSize(wall_size, 0.0f,
+                                                                         (float)imageProcessor.getColumns(), 0.0f,
+                                                                         (float)imageProcessor.getRows())));
+                                }
                         }
                 }
         }
-
-        std::cout << _walls.size() << '\n';
         meltWalls();
-        std::cout << _walls.size() << '\n';
+        {
+                Core::Vector2f checkpoint_pos{}, checkpoint_vector{};
+                std::shared_ptr<Checkpoint> new_checkpoint{};
+
+                // checkpoints
+                for (const std::pair<Vector2f, Vector2f>& check_pts_pair : imageProcessor.getCheckPoints()) {
+                        checkpoint_vector = check_pts_pair.second - check_pts_pair.first;
+                        checkpoint_vector.y = -checkpoint_vector.y;
+
+                        checkpoint_pos = scale * _camera->projectCoordinate(check_pts_pair.first, 0.0f,
+                                                                            (float)imageProcessor.getColumns(),
+                                                                            (float)imageProcessor.getRows(), 0.0f);
+                        checkpoint_vector =
+                            scale * _camera->projectSize(checkpoint_vector, 0.0f, (float)imageProcessor.getColumns(),
+                                                         0.0f, (float)imageProcessor.getRows());
+                        new_checkpoint = _entity_model_creator->createCheckpointModel(
+                            _camera, checkpoint_pos, {}, checkpoint_vector.normalized(), checkpoint_vector.length());
+                        new_checkpoint->setShowRaycast(true);
+                        _checkpoints.push_back(new_checkpoint);
+                }
+        }
+        {
+                // finish line
+                std::shared_ptr<Checkpoint> new_finish;
+                Vector2f finish_point{imageProcessor.getEndlineV1()};
+                Vector2f finish_vector{};
+                finish_vector = imageProcessor.getEndlineV2() - finish_point;
+                finish_vector.y = -finish_vector.y;
+
+                finish_point =
+                    scale * _camera->projectCoordinate(finish_point, 0.0f, (float)imageProcessor.getColumns(),
+                                                       (float)imageProcessor.getRows(), 0.0f);
+                finish_vector = scale * _camera->projectSize(finish_vector, 0.0f, (float)imageProcessor.getColumns(),
+                                                             0.0f, (float)imageProcessor.getRows());
+                new_finish = _entity_model_creator->createCheckpointModel(
+                    _camera, finish_point, {}, finish_vector.normalized(), finish_vector.length());
+                new_finish->setShowRaycast(true);
+                _finish_line = new_finish;
+        }
+        {
+                Vector2f direction{imageProcessor.getDirection()};
+                _spawn_location = scale * _camera->projectCoordinate(imageProcessor.getStartPoint(), 0.0f,
+                                                                     (float)imageProcessor.getColumns(),
+                                                                     (float)imageProcessor.getRows(), 0.0f);
+                direction.y = -direction.y;
+                _spawn_direction = (scale * _camera->projectSize(direction, 0.0f, (float)imageProcessor.getColumns(),
+                                                                 (float)imageProcessor.getRows(), 0.0f))
+                                       .normalized();
+        }
 }
 #else
 void World::initializeWalls(const std::string& inputname, float scale)
@@ -226,7 +283,6 @@ void World::meltWalls()
         meltColumns();
         meltRows();
 }
-
 void World::meltRows()
 {
         bool melted_wall = false;
@@ -299,7 +355,6 @@ void World::meltRows()
         if (melted_wall)
                 meltRows();
 }
-
 void World::meltColumns()
 {
         bool melted_wall = false;
@@ -644,10 +699,12 @@ void World::checkCollisions()
                         }
 
                         // finish line
-                        std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
-                        if (checkCollision(raycast, car)) {
-                                car->checkReachedFinish(_checkpoints.size());
-                                raycast->clear();
+                        if (_finish_line) {
+                                std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
+                                if (checkCollision(raycast, car)) {
+                                        car->checkReachedFinish(_checkpoints.size());
+                                        raycast->clear();
+                                }
                         }
                 }
         }
