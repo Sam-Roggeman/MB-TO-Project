@@ -9,7 +9,7 @@ using namespace std;
 class FFNeuralNetwork
 {
 private:
-        int inputNodes, hiddenNodes, outputNodes, hiddenLayers;
+        int inputNodes, hiddenNodes, outputNodes, _hiddenLayers;
         vector<vector<vector<float>>> weights;
         vector<float> forward(vector<float> inputs);
 public:

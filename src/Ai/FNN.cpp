@@ -21,8 +21,8 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 	inputNodes = input;
 	hiddenNodes = hidden;
 	outputNodes = output;
-	hiddenLayers = hiddenLayers;
-	if (hiddenLayers) {
+	_hiddenLayers = hiddenLayers;
+	if (_hiddenLayers) {
 		weights.emplace_back(vector<vector<float>>());
 		for (int i = 0; i < hiddenNodes; i++) {
 			weights[0].push_back(vector<float>());
@@ -32,7 +32,7 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 		}
 	}
 	
-	for (int i = 1; i < hiddenLayers; i++) {
+	for (int i = 1; i < _hiddenLayers; i++) {
 		weights.emplace_back(vector<vector<float>>());
 		for (int k = 0; k < hiddenNodes; k++) {
 			weights[i].push_back(vector<float>());
@@ -122,7 +122,7 @@ void FFNeuralNetwork::mutate(float mr) {
 
  FFNeuralNetwork FFNeuralNetwork::crossover(FFNeuralNetwork& partner)
  {
-         FFNeuralNetwork child = FFNeuralNetwork(inputNodes, hiddenNodes, outputNodes, hiddenLayers);
+         FFNeuralNetwork child = FFNeuralNetwork(inputNodes, hiddenNodes, outputNodes, _hiddenLayers);
          for (int i = 0; i < weights.size(); i++) {
                  int randomColumn = floor(Core::Random::uniformReal(0.0f,(float) weights[i][0].size())); //!!!!!!!!
                  int randomRow = floor(Core::Random::uniformReal(0.0f, (float) weights[i].size()));       //!!!!!!!!

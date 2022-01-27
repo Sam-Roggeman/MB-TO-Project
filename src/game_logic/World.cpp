@@ -16,12 +16,12 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         generateTestMap();
 
-        generateCars({2, 0}, {-1, 0}, 5, "assets/car_presets/physics_preset_1.xml",
+        generateCars({2, 0}, {0, 1}, 20, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
 
 
         //        initializeWalls("assets/maps/Untitled2.png", 5);
-        //        loadMap("assets/maps/world.save");
+        //        loadMapd("assets/maps/world.save");
 }
 
 World::~World() { saveMap("assets/maps/world_last_run.save"); }
@@ -51,7 +51,6 @@ void World::update(double t, float dt)
                 for (int i = 0; i < nBest; i++) {
                         bestCars[i] = _cars[i].get();
                 }
-                std::cout << "hello\n";
                 for (int i = nBest; i < nPopulation-2; i++) {
                         Car* carParrent1 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
                         Car* carParrent2 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
@@ -63,21 +62,16 @@ void World::update(double t, float dt)
                         }
 
                         _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check crossover
-                        std::cout << "william\n";
                         _cars[i]->getBrain().mutate(mr);
-                        std::cout << "william22222\n";
 
                 }
-                std::cout << "hello2222\n";
                 for (int i = 0; i < 2; i++) {
                         Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
                         carP->getBrain().mutate(mr);
                 }
 
-                std::cout << "generation: " << generation << std::endl;
-
                 for (auto& car : _cars) {
-                        car->reset({2, 0}, {-1, 0});
+                        car->reset({2, 0}, {0, 1});
                 }
 
                 // neural network mutation

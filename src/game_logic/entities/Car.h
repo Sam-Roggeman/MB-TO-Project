@@ -1,12 +1,12 @@
 #ifndef UABA2_AP_PROJECT_CAR_H
 #define UABA2_AP_PROJECT_CAR_H
 
-#include "../CoreConstants.h"
-#include "EntityModel.h"
-#include "../utils/json.hpp"
-#include <fstream>
 #include "../../Ai/FNN.h" //mohammed
 #include "../../AutomataAndGrammars/SLR.h"
+#include "../CoreConstants.h"
+#include "../utils/json.hpp"
+#include "EntityModel.h"
+#include <fstream>
 
 namespace Core {
 class Car : public EntityModel
@@ -28,7 +28,7 @@ private:
         float _min_traction;
         float _max_traction;
 
-        FFNeuralNetwork _brain; //mohammed
+        FFNeuralNetwork _brain; // mohammed
         bool _ai_controlled;
         bool _reached_finish;
         bool _is_dead;
@@ -48,7 +48,7 @@ public:
 
         void onHitCheckpoint(unsigned int checkpoint_id);
 
-        void reset(const Vector2f& position={0, 0}, const Vector2f& direction={0, 1});
+        void reset(const Vector2f& position = {0, 0}, const Vector2f& direction = {0, 1});
 
         void steer(float angle_radian, float direction_sign, float dt);
 
