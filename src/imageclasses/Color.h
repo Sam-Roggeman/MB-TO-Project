@@ -40,7 +40,11 @@ public:
 
         bool isZero() const { return red == 0 && blue == 0 && green == 0; }
         bool isBrown() { return std::abs(red - 127) <= 35 && std::abs(green - 51) <= 35 && std::abs(blue - 0) <= 35; }
-        bool isGrey() { return std::abs(red - 128) <= 50 && std::abs(green - 128) <= 50 && std::abs(blue - 128) <= 50; }
+        bool isGrey() { return std::abs(red - 128) <= 20 && std::abs(green - 128) <= 20 && std::abs(blue - 128) <= 20; }
+        bool isRed() { return std::abs(red - 255) <= 20 && std::abs(green - 28) <= 20 && std::abs(blue - 43) <= 20; }
+        bool isOrange() { return std::abs(red - 255) <= 20 && std::abs(green - 106) <= 20 && std::abs(blue - 0) <= 20; }
+        bool isGreen() { return std::abs(red - 38) <= 20 && std::abs(green - 127) <= 20 && std::abs(blue - 0) <= 20; }
+        bool isYellow() { return std::abs(red - 255) <= 20 && std::abs(green - 216) <= 20 && std::abs(blue - 0) <= 20; }
 };
 
 #endif // PROJECT_COLOR_H
