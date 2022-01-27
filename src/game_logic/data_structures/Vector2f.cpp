@@ -109,6 +109,11 @@ std::ostream& Core::operator<<(std::ostream& os, const Core::Vector2f& vector)
         return os;
 }
 
+std::string Core::Vector2f::toString() const
+{
+        return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+}
+
 bool Core::Vector2f::empty() const { return x == 0 & y == 0; }
 
 void Core::Vector2f::clear()

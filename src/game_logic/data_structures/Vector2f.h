@@ -63,6 +63,8 @@ public:
 
         friend std::ostream& operator<<(std::ostream& os, const Vector2f& vector);
 
+        std::string toString() const;
+
         bool empty() const;
 
         void clear();

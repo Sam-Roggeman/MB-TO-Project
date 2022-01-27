@@ -46,6 +46,8 @@ public:
 
         virtual void update(double t, float dt);
 
+        std::shared_ptr<InputMap> getInputMap();
+
         void setInputMap(const std::shared_ptr<InputMap>& input_map);
 
         virtual Vector2f getPosition() const;
@@ -91,6 +93,8 @@ public:
         virtual Vector2f getRepresentationViewSize() const;
 
         virtual void setViewSize(const Vector2f& view_size);
+
+        virtual bool getCameraFocus() const;
 
         virtual void setCameraFocus(bool focus);
 

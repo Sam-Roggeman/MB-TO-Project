@@ -10,6 +10,7 @@
 #include "entities/Wall.h"
 #include "utils/InputMap.h"
 #include "utils/Stopwatch.h"
+#include "utils/UserInputMap.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -20,21 +21,28 @@ namespace Core {
 class World
 {
 private:
+        // camera
         std::shared_ptr<Camera> _camera;
+        bool move_camera;
+        Vector2f _middle_mouse_lock_pos;
+        Vector2f _previous_camera_pos;
+        bool _previous_focus_state;
 
         // entities
         std::shared_ptr<IEntityModelCreator> _entity_model_creator;
-        std::shared_ptr<Car> _player;
         std::vector<std::shared_ptr<Car>> _cars;
         std::vector<std::shared_ptr<Wall>> _walls;
         std::vector<std::shared_ptr<Checkpoint>> _checkpoints;
         std::shared_ptr<Checkpoint> _finish_line;
         std::vector<std::shared_ptr<GroundTile>> _ground_tiles;
 
-        std::shared_ptr<InputMap> _user_input_map;
+        // player
+        std::shared_ptr<Car> _player;
+        std::shared_ptr<UserInputMap> _user_input_map;
 
-        Vector2f _spawn_location{2, 0}, _spawn_direction{0, 1};
-
+        // AI
+        Vector2f _spawn_location;
+        Vector2f _spawn_direction;
         unsigned int generation;
         unsigned int _generation;
         float _generation_time;
@@ -48,7 +56,9 @@ public:
 
         void update(double t, float dt);
 
-        std::shared_ptr<InputMap> getInputMap();
+        std::shared_ptr<UserInputMap> getInputMap();
+
+        std::shared_ptr<Camera> getCamera();
 
 private:
         void saveMap(const std::string& filepath) const;
@@ -72,9 +82,17 @@ private:
 
         void generateTestMap();
 
+        void updateAI(double t, float dt);
+
+        void updateCamera(double t, float dt);
+
+        void controlPlayer(double t, float dt);
+
+        void controlGameSpeed(double t, float dt);
+
         void updateEntities(double t, float dt);
 
-        void checkCollisions();
+        void checkCollisions(double t, float dt);
 
         static bool checkCollision(const std::shared_ptr<EntityModel>& entity1,
                                    const std::shared_ptr<EntityModel>& entity2, bool collision_response = true);

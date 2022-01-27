@@ -32,7 +32,11 @@ private:
 
         void handleEvents();
 
-        void handleInput(const sf::Event& event, bool pressed);
+        void handleKeyboardInput(const sf::Event& event, bool pressed);
+
+        void handleMouseInput(const sf::Event& event, bool pressed);
+
+        void resizeWindow(unsigned int screen_width, unsigned int screen_height);
 };
 } // namespace Representation
 

@@ -3,8 +3,10 @@
 namespace Core {
 World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
              float y_max)
-    : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap),
-      _generation(0), _generation_time(0), _time_limit(30)
+    : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new UserInputMap),
+      _generation(0), _generation_time(0), _time_limit(CoreConstants::time_limit),
+      _spawn_location(CoreConstants::spawn_location), _spawn_direction(CoreConstants::spawn_direction),
+      _previous_focus_state(false)
 {
         // set the camera
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
@@ -13,116 +15,51 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateGroundTiles(4);
 #ifdef WIN32
         generateMapFromImage("assets/maps/Untitled3.png", 5);
-//        loadMap("assets/maps/world_.save");
 #else
         //                loadMap("assets/maps/world.save");
         generateTestMap();
 #endif
         // spawn the player
-        _player = _entity_model_creator->createCarModel(_camera, _spawn_location, {0.2, 0.2},
-                                                        "assets/car_presets/physics_preset_1.xml",
-                                                        "assets/car_presets/sprite_preset_1.xml");
-        _player->setCameraFocus(true);
-        _player->setInputMap(_user_input_map);
+        if (CoreConstants::generate_player) {
+                _player = _entity_model_creator->createCarModel(_camera, _spawn_location, {0.2, 0.2},
+                                                                "assets/car_presets/physics_preset_1.xml",
+                                                                "assets/car_presets/sprite_preset_1.xml");
+                _player->setCameraFocus(true);
+        }
 
         // spawn the cars
         generateCars(_spawn_location, _spawn_direction.normalized(), 2, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
+
+        generateGroundTiles(2);
 }
 
 World::~World() { saveMap("assets/maps/world_last_run.save"); }
 
 void World::update(double t, float dt)
 {
-        // logic
+        // player control
+        controlPlayer(t, dt);
 
-        // game speed
-        if (_user_input_map->custom1) {
-                Stopwatch::getInstance().setPhysicsSpeed(1);
-        }
-        if (_user_input_map->custom2) {
-                Stopwatch::getInstance().setPhysicsSpeed(5);
-        }
-        if (_user_input_map->custom3) {
-                Stopwatch::getInstance().setPhysicsSpeed(10);
-        }
-        if (_user_input_map->custom4) {
-                Stopwatch::getInstance().setPhysicsSpeed(20);
-        }
+        // gamespeed
+        controlGameSpeed(t, dt);
+
+        // camera
+        updateCamera(t, dt);
 
         // AI
-        _generation_time += dt;
-        bool all_cars_dead_or_finished = true;
-        for (auto& car : _cars) {
-                if (!(car->isDead() || car->reachedFinish())) {
-                        all_cars_dead_or_finished = false;
-                }
-        }
-
-        // time limit
-        if (_generation_time > _time_limit) {
-                for (auto& car : _cars) {
-                        car->calculateFitness(true);
-                }
-                all_cars_dead_or_finished = true;
-                std::cout << "Time Out!" << std::endl;
-        }
-
-        if (all_cars_dead_or_finished) {
-                // config
-                int nBest = 2;
-                int nPopulation = static_cast<int>(_cars.size());
-                float mr = 0.8;
-
-                // data
-                vector<Car*> bestCars(nBest, nullptr);
-
-                _generation++;
-                std::cout << "Generation " << _generation << std::endl;
-
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
-                        return lhs->getFitness() < rhs->getFitness();
-                });
-                for (int i = 0; i < nBest; i++) {
-                        bestCars[i] = _cars[i].get();
-                }
-                for (int i = nBest; i < nPopulation - 2; i++) {
-                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
-                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
-
-                        if (Random::uniformReal(0, 1) > 0.5f) {
-                                Car* temp = carParrent1;
-                                carParrent1 = carParrent2;
-                                carParrent2 = temp;
-                        }
-
-                        _cars[i]->getBrain() =
-                            carParrent1->getBrain().crossover(carParrent2->getBrain()); // check crossover
-                        _cars[i]->getBrain().mutate(mr);
-                }
-                for (int i = 0; i < 2; i++) {
-                        Car* carP = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
-                        _cars[nPopulation - i - 1]->getBrain() = carP->getBrain();
-                        _cars[nPopulation - i - 1]->getBrain().mutate(mr);
-                }
-
-                // reset
-                for (auto& car : _cars) {
-                        car->reset(_spawn_location, _spawn_direction.normalized());
-                }
-                _generation_time = 0;
-
-                // neural network mutation
-        }
+        updateAI(t, dt);
 
         // updates
         updateEntities(t, dt);
 
         // collisions
-        checkCollisions();
+        checkCollisions(t, dt);
 }
 
-std::shared_ptr<InputMap> World::getInputMap() { return _user_input_map; }
+std::shared_ptr<UserInputMap> World::getInputMap() { return _user_input_map; }
+
+std::shared_ptr<Camera> World::getCamera() { return _camera; }
 
 void World::saveMap(const std::string& filepath) const
 {
@@ -293,9 +230,9 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                                                                   ((float)base_row + (float)square_r / 2));
                                         _walls.emplace_back(_entity_model_creator->createWallModel(
                                             _camera,
-                                            scale * _camera->projectCoordinate(wall_pos, 0.0f,
-                                                                               (float)imageProcessor.getColumns(),
-                                                                               (float)imageProcessor.getRows(), 0.0f),
+                                            scale * _camera->projectCoordinateCustomToWorld(
+                                                        wall_pos, 0.0f, (float)imageProcessor.getColumns(),
+                                                        (float)imageProcessor.getRows(), 0.0f),
                                             scale * _camera->projectSize(wall_size, 0.0f,
                                                                          (float)imageProcessor.getColumns(), 0.0f,
                                                                          (float)imageProcessor.getRows())));
@@ -313,9 +250,9 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                         checkpoint_vector = check_pts_pair.second - check_pts_pair.first;
                         checkpoint_vector.y = -checkpoint_vector.y;
 
-                        checkpoint_pos = scale * _camera->projectCoordinate(check_pts_pair.first, 0.0f,
-                                                                            (float)imageProcessor.getColumns(),
-                                                                            (float)imageProcessor.getRows(), 0.0f);
+                        checkpoint_pos = scale * _camera->projectCoordinateCustomToWorld(
+                                                     check_pts_pair.first, 0.0f, (float)imageProcessor.getColumns(),
+                                                     (float)imageProcessor.getRows(), 0.0f);
                         checkpoint_vector =
                             scale * _camera->projectSize(checkpoint_vector, 0.0f, (float)imageProcessor.getColumns(),
                                                          0.0f, (float)imageProcessor.getRows());
@@ -333,9 +270,9 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                 finish_vector = imageProcessor.getEndlineV2() - finish_point;
                 finish_vector.y = -finish_vector.y;
 
-                finish_point =
-                    scale * _camera->projectCoordinate(finish_point, 0.0f, (float)imageProcessor.getColumns(),
-                                                       (float)imageProcessor.getRows(), 0.0f);
+                finish_point = scale * _camera->projectCoordinateCustomToWorld(finish_point, 0.0f,
+                                                                               (float)imageProcessor.getColumns(),
+                                                                               (float)imageProcessor.getRows(), 0.0f);
                 finish_vector = scale * _camera->projectSize(finish_vector, 0.0f, (float)imageProcessor.getColumns(),
                                                              0.0f, (float)imageProcessor.getRows());
                 new_finish = _entity_model_creator->createCheckpointModel(
@@ -345,9 +282,9 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
         }
         {
                 Vector2f direction{imageProcessor.getDirection()};
-                _spawn_location = scale * _camera->projectCoordinate(imageProcessor.getStartPoint(), 0.0f,
-                                                                     (float)imageProcessor.getColumns(),
-                                                                     (float)imageProcessor.getRows(), 0.0f);
+                _spawn_location = scale * _camera->projectCoordinateCustomToWorld(
+                                              imageProcessor.getStartPoint(), 0.0f, (float)imageProcessor.getColumns(),
+                                              (float)imageProcessor.getRows(), 0.0f);
                 direction.y = -direction.y;
                 _spawn_direction = (scale * _camera->projectSize(direction, 0.0f, (float)imageProcessor.getColumns(),
                                                                  (float)imageProcessor.getRows(), 0.0f))
@@ -366,6 +303,7 @@ void World::meltWalls()
         meltColumns();
         meltRows();
 }
+
 void World::meltRows()
 {
         bool melted_wall = false;
@@ -730,10 +668,162 @@ void World::generateTestMap()
         _finish_line = new_checkpoint;
 }
 
+void World::updateAI(double t, float dt)
+{
+        _generation_time += dt;
+        bool all_cars_dead_or_finished = true;
+        for (auto& car : _cars) {
+                if (!(car->isDead() || car->reachedFinish())) {
+                        all_cars_dead_or_finished = false;
+                }
+        }
+
+        // time limit
+        if (_generation_time > _time_limit) {
+                for (auto& car : _cars) {
+                        car->calculateFitness(true);
+                }
+                all_cars_dead_or_finished = true;
+                std::cout << "Time Out!" << std::endl;
+        }
+
+        if (all_cars_dead_or_finished) {
+                // config
+                int nBest = 2;
+                int nPopulation = static_cast<int>(_cars.size());
+                float mr = 0.8;
+
+                // data
+                vector<Car*> bestCars(nBest, nullptr);
+
+                _generation++;
+                std::cout << "Generation " << _generation << std::endl;
+
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
+                        return lhs->getFitness() < rhs->getFitness();
+                });
+                for (int i = 0; i < nBest; i++) {
+                        bestCars[i] = _cars[i].get();
+                }
+                for (int i = nBest; i < nPopulation - 2; i++) {
+                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
+                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
+
+                        if (Random::uniformReal(0, 1) > 0.5f) {
+                                Car* temp = carParrent1;
+                                carParrent1 = carParrent2;
+                                carParrent2 = temp;
+                        }
+
+                        _cars[i]->getBrain() =
+                            carParrent1->getBrain().crossover(carParrent2->getBrain()); // check crossover
+                        _cars[i]->getBrain().mutate(mr);
+                }
+                for (int i = 0; i < 2; i++) {
+                        Car* carP = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
+                        _cars[nPopulation - i - 1]->getBrain() = carP->getBrain();
+                        _cars[nPopulation - i - 1]->getBrain().mutate(mr);
+                }
+
+                // reset
+                for (auto& car : _cars) {
+                        car->reset(_spawn_location, _spawn_direction);
+                }
+                _generation_time = 0;
+        }
+}
+
+void World::updateCamera(double t, float dt)
+{
+        // camera zoom
+        if (_user_input_map->mouse_wheel_delta != 0) {
+                float zoom = -2.f;
+                Vector2f new_x_bounderies = _camera->getXBounderies();
+                new_x_bounderies.x -= zoom * _camera->getCamerawidth() * dt * _user_input_map->mouse_wheel_delta;
+                new_x_bounderies.y += zoom * _camera->getCamerawidth() * dt * _user_input_map->mouse_wheel_delta;
+
+                Vector2f new_y_bounderies = _camera->getYBounderies();
+                new_y_bounderies.x -= zoom * _camera->getCameraheight() * dt * _user_input_map->mouse_wheel_delta;
+                new_y_bounderies.y += zoom * _camera->getCameraheight() * dt * _user_input_map->mouse_wheel_delta;
+
+                _camera->setCameraBounderies(new_x_bounderies.x, new_x_bounderies.y, new_y_bounderies.x,
+                                             new_y_bounderies.y);
+                _user_input_map->mouse_wheel_delta = 0;
+        }
+
+        if (_camera->getFocused())
+                return;
+
+        // camera move
+        if (_user_input_map->mouse_button_middle) {
+                if (!move_camera) {
+                        move_camera = true;
+                        _middle_mouse_lock_pos = _user_input_map->mouse_pos_representation_window;
+                        _previous_camera_pos = _camera->getPosition();
+
+                        return;
+                }
+                float camera_move_scale = 2;
+
+                Vector2f move_vector =
+                    _camera->projectCoordinateRepresentationToWorld(_user_input_map->mouse_pos_representation_window) -
+                    _camera->projectCoordinateRepresentationToWorld(_middle_mouse_lock_pos);
+
+                move_vector *= -2;
+
+                _camera->setPosition(_previous_camera_pos + move_vector);
+
+        } else {
+                move_camera = false;
+                _middle_mouse_lock_pos.clear();
+        }
+}
+
+void World::controlPlayer(double t, float dt)
+{
+        if (CoreConstants::generate_player) {
+                // player movement
+                _player->getInputMap()->up = _user_input_map->w;
+                _player->getInputMap()->down = _user_input_map->s;
+                _player->getInputMap()->left = _user_input_map->a;
+                _player->getInputMap()->right = _user_input_map->d;
+                _player->getInputMap()->reset = _user_input_map->r;
+
+                // camera focus
+                if (_user_input_map->f) {
+                        if (!_previous_focus_state) {
+                                _player->setCameraFocus(!_player->getCameraFocus());
+                                _previous_focus_state = true;
+                        }
+                } else {
+                        _previous_focus_state = false;
+                }
+        }
+}
+
+void World::controlGameSpeed(double t, float dt)
+{
+        // game speed
+        if (_user_input_map->z) {
+                Stopwatch::getInstance().setPhysicsSpeed(1);
+        }
+        if (_user_input_map->x) {
+                Stopwatch::getInstance().setPhysicsSpeed(2);
+        }
+        if (_user_input_map->c) {
+                Stopwatch::getInstance().setPhysicsSpeed(4);
+        }
+        if (_user_input_map->v) {
+                Stopwatch::getInstance().setPhysicsSpeed(10);
+        }
+}
+
 void World::updateEntities(double t, float dt)
 {
         // player
-        _player->update(t, dt);
+        if (CoreConstants::generate_player) {
+                _player->update(t, dt);
+        }
 
         // cars
         for (auto& car : _cars) {
@@ -751,15 +841,17 @@ void World::updateEntities(double t, float dt)
         }
 }
 
-void World::checkCollisions()
+void World::checkCollisions(double t, float dt)
 {
         // walls
         for (auto& wall : _walls) {
                 // player
-                checkCollision(_player, wall);
+                if (CoreConstants::generate_player) {
+                        checkCollision(_player, wall);
 
-                for (auto& raycast : _player->getRaycasts()) {
-                        checkCollision(raycast, wall);
+                        for (auto& raycast : _player->getRaycasts()) {
+                                checkCollision(raycast, wall);
+                        }
                 }
 
                 // cars

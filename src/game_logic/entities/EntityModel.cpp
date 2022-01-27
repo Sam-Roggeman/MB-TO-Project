@@ -38,11 +38,16 @@ void Core::EntityModel::update(double t, float dt)
         notifyObservers();
 }
 
+std::shared_ptr<Core::InputMap> Core::EntityModel::getInputMap() { return _input_map; }
+
 void Core::EntityModel::setInputMap(const std::shared_ptr<Core::InputMap>& input_map) { _input_map = input_map; }
 
 Core::Vector2f Core::EntityModel::getPosition() const { return _position; }
 
-Core::Vector2f Core::EntityModel::getRepresentationPosition() const { return _camera->projectCoordinate(_position); }
+Core::Vector2f Core::EntityModel::getRepresentationPosition() const
+{
+        return _camera->projectCoordinateWorldToRepresentation(_position);
+}
 
 void Core::EntityModel::setPosition(const Core::Vector2f& position)
 {
@@ -139,7 +144,16 @@ Core::Vector2f Core::EntityModel::getRepresentationViewSize() const { return _ca
 
 void Core::EntityModel::setViewSize(const Core::Vector2f& view_size) { _view_size = view_size; }
 
-void Core::EntityModel::setCameraFocus(bool focus) { _focus_camera = focus; }
+bool Core::EntityModel::getCameraFocus() const
+{
+        return _focus_camera;
+}
+
+void Core::EntityModel::setCameraFocus(bool focus)
+{
+        _focus_camera = focus;
+        _camera->setFocused(focus);
+}
 
 std::shared_ptr<Core::Hitbox> Core::EntityModel::getHitbox() const { return _hitbox; }
 
@@ -147,11 +161,11 @@ std::shared_ptr<Core::Hitbox> Core::EntityModel::getRepresentationHitbox() const
 {
         std::shared_ptr<Core::Hitbox> representation_hitbox(new Core::Hitbox());
 
-        representation_hitbox->setOrigin(_camera->projectCoordinate(_hitbox->getOrigin()));
+        representation_hitbox->setOrigin(_camera->projectCoordinateWorldToRepresentation(_hitbox->getOrigin()));
 
         std::vector<Vector2f> new_points;
         for (auto& point : _hitbox->getPoints()) {
-                new_points.push_back(_camera->projectCoordinate(point));
+                new_points.push_back(_camera->projectCoordinateWorldToRepresentation(point));
         }
         representation_hitbox->setPoints(new_points);
 
@@ -164,8 +178,7 @@ bool Core::EntityModel::getStatic() const { return _is_static; }
 
 void Core::EntityModel::setStatic(bool is_static) { _is_static = is_static; }
 
-void Core::EntityModel::onHit()
-{}
+void Core::EntityModel::onHit() {}
 
 std::shared_ptr<Core::Raycast> Core::EntityModel::getRaycast(unsigned int raycast_id) const
 {
@@ -180,13 +193,13 @@ std::vector<std::shared_ptr<Core::Raycast>> Core::EntityModel::getRepresentation
         for (const auto& raycast : _raycasts) {
                 std::shared_ptr<Raycast> new_raycast;
                 if (raycast->isActivated()) {
-                        new_raycast =
-                            std::make_shared<Core::Raycast>(_camera->projectCoordinate(raycast->getOrigin()),
-                                                            _camera->projectCoordinate(raycast->getCollisionPoint()));
+                        new_raycast = std::make_shared<Core::Raycast>(
+                            _camera->projectCoordinateWorldToRepresentation(raycast->getOrigin()),
+                            _camera->projectCoordinateWorldToRepresentation(raycast->getCollisionPoint()));
                 } else {
-                        new_raycast =
-                            std::make_shared<Core::Raycast>(_camera->projectCoordinate(raycast->getOrigin()),
-                                                            _camera->projectCoordinate(raycast->getEndpoint()));
+                        new_raycast = std::make_shared<Core::Raycast>(
+                            _camera->projectCoordinateWorldToRepresentation(raycast->getOrigin()),
+                            _camera->projectCoordinateWorldToRepresentation(raycast->getEndpoint()));
                 }
 
                 new_raycasts.push_back(new_raycast);

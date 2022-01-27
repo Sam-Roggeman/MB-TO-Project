@@ -35,33 +35,11 @@ void Core::Car::update(double t, float dt)
                 }
                 vector<float> neural_outputs = _brain(raycast_lengths);
 
-                //        int maxIndex = 0;
-                //        float max = 0;
-                //        for(int i = 0; i < neural_outputs.size(); i++) {
-                //                if(neural_outputs[i] > max) {
-                //                        max = neural_outputs[i];
-                //                        maxIndex = i;
-                //                }
-                //        }
-
-//                std::cout << neural_outputs[0] << std::endl;
                 _input_map->up = 1.0;
                 _input_map->down = neural_outputs[0];
                 _input_map->right = neural_outputs[1];
                 _input_map->left = neural_outputs[2];
-                // _input_map->down = neural_outputs[0];
-                // _input_map->left = neural_outputs[1];
-                // _input_map->right = neural_outputs[2];
 
-//                if (neural_outputs[0] > 0.666)
-//                        _input_map->right = 0.1;
-//                else if (neural_outputs[0] < 0.333)
-//                    _input_map->left = 0.1;
-//                _input_map->up = 0.2;
-//                _input_map->down = 0;
-
-//                _input_map->right = neural_outputs[2];
-//                _input_map->left = neural_outputs[3];
         } else if (_ai_controlled) {
             _input_map->up = 0;
             _input_map->down = 0;
@@ -71,7 +49,7 @@ void Core::Car::update(double t, float dt)
 
         // clear
         if (_input_map->reset) {
-                reset({0, 0}, {0, 1});
+                reset(CoreConstants::spawn_location, CoreConstants::spawn_direction);
         }
 
         // direction
@@ -152,10 +130,9 @@ void Core::Car::reset(const Vector2f& position, const Vector2f& direction)
         _velocity.clear();
         _force.clear();
 
-        _direction = {0, 1};
         setRotation(0);
-
         rotate(atan2f(direction.y, direction.x) - static_cast<float>(M_PI) / 2.f);
+        _direction = direction;
 
         _is_dead = false;
         _reached_finish = false;
