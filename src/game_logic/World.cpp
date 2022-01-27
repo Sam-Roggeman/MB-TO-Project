@@ -10,7 +10,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 {
         // set the camera
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
-
+        std::cout << "Loading The Map ..." << std::endl;
         // load the map
         generateGroundTiles(5);
 #ifdef WIN32
@@ -22,20 +22,25 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 #endif
         // spawn the player
         if (CoreConstants::generate_player) {
+                std::cout << "Spawning The Player ..." << std::endl;
                 _player = _entity_model_creator->createCarModel(_camera, _spawn_location, {0.2, 0.2},
                                                                 "assets/car_presets/physics_preset_1.xml",
                                                                 "assets/car_presets/sprite_preset_1.xml");
                 _player->setCameraFocus(true);
         }
 
-        _populationCars = 3; // MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        _populationCars = 25; // MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
         _mutationRate = 60;
-
+        std::cout << "Generating " << _populationCars << " Cars ..." << std::endl;
         generateCars(_spawn_location, _spawn_direction.normalized(), _populationCars,
                      "assets/car_presets/physics_preset_1.xml", "assets/car_presets/sprite_preset_1.xml");
 }
 
-World::~World() { saveMap("assets/maps/world_last_run.save"); }
+World::~World()
+{
+        saveMap("assets/maps/world_last_run.save");
+        std::cout << "Destructing The World ... " << std::endl;
+}
 
 void World::update(double t, float dt)
 {
@@ -249,7 +254,6 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
                 }
         }
         meltWalls();
-        std::cout << _walls.size() << std::endl;
         {
                 Core::Vector2f checkpoint_pos{}, checkpoint_vector{};
                 std::shared_ptr<Checkpoint> new_checkpoint{};

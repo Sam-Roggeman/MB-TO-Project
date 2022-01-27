@@ -4,14 +4,17 @@ Representation::Game::Game()
     : _screen_width(RepresentationConstants::screen_width), _screen_height(RepresentationConstants::screen_height),
       _running(true), _entity_model_creator(new Representation::EntityModelCreator)
 {
+        std::cout << "Loading Game ..." << std::endl;
         _world = std::make_unique<Core::World>(_entity_model_creator, 0, _screen_width, _screen_height, 0);
+        std::cout << "Starting Window ..." << std::endl;
         _window = std::make_unique<sf::RenderWindow>(sf::VideoMode(_screen_width, _screen_height), "SFML_test");
 }
 
-Representation::Game::~Game() = default;
+Representation::Game::~Game() { std::cout << "Exiting The Game ..." << std::endl; };
 
 void Representation::Game::run()
 {
+        std::cout << "Starting The Game ..." << std::endl;
         while (_running) {
                 // sleep
                 Core::Stopwatch::getInstance().sleep_frame();
@@ -90,8 +93,9 @@ void Representation::Game::handleEvents()
                             {static_cast<float>(sf::Mouse::getPosition(*_window).x),
                              static_cast<float>(sf::Mouse::getPosition(*_window).y)},
                             0, static_cast<float>(_screen_width), static_cast<float>(_screen_height), 0);
-                        _world->getInputMap()->mouse_pos_representation_window = {static_cast<float>(sf::Mouse::getPosition(*_window).x),
-                                                                                   static_cast<float>(sf::Mouse::getPosition(*_window).y)};
+                        _world->getInputMap()->mouse_pos_representation_window = {
+                            static_cast<float>(sf::Mouse::getPosition(*_window).x),
+                            static_cast<float>(sf::Mouse::getPosition(*_window).y)};
                         break;
 
                 case sf::Event::MouseWheelScrolled:
