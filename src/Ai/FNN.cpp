@@ -27,7 +27,7 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 		for (int i = 0; i < hiddenNodes; i++) {
 			weights[0].push_back(vector<float>());
 			for (int k = 0; k < inputNodes+1; k++) {
-				weights[0][i].push_back(Core::Random::uniformReal(0,1)*0.2f - 0.1f);//(-1,1)); //!!!!!!!!!
+				weights[0][i].push_back(Core::Random::uniformReal(0,1)); //!!!!!!!!!
 			}
 		}
 	}
@@ -37,7 +37,7 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 		for (int k = 0; k < hiddenNodes; k++) {
 			weights[i].push_back(vector<float>());
 			for (int c = 0; c < hiddenNodes+1; c++) {
-				weights[i][k].push_back(Core::Random::uniformReal(0,1)*0.2f - 0.1f);//(-1,1)); //!!!!!!!!!
+				weights[i][k].push_back(Core::Random::uniformReal(0,1)); //!!!!!!!!!
 			}
 		}
 	}
@@ -46,7 +46,7 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 	for (int i = 0; i < outputNodes; i++) {
 		weights[weights.size()-1].push_back(vector<float>());
 		for (int k = 0; k < hiddenNodes+1; k++) {
-			weights[weights.size()-1][i].push_back(Core::Random::uniformReal(0,1)*0.2f - 0.1f);//(-1,1)); //!!!!!!!!!!
+			weights[weights.size()-1][i].push_back(Core::Random::uniformReal(0,1)); //!!!!!!!!!!
 		}
 	}
 
@@ -60,18 +60,26 @@ FFNeuralNetwork::FFNeuralNetwork(int input, int hidden, int output, int hiddenLa
 }
 
 void FFNeuralNetwork::mutate(float mr) {
+//        for (vector<vector<float>>& w : weights) {
+//                for (int i = 0; i < w.size(); i++) {
+//                        if (Core::Random::uniformReal(0,0.9999999999) < mr) {
+//                                w[i][w[0].size()-1] += w[i][w[0].size()-1]*()
+//                        }
+//                        w[i][w[0].size()-1]
+//                }
+ //       }
 	for(vector<vector<float>>& w : weights) {
  		for (int i = 0; i < w.size(); i++) {
  			for (int k = 0; k < w[0].size(); k++) {
  				float rand_number = Core::Random::uniformReal(0,1);//(-1,1); //!!!!!!!!!!!!!!!
  				if (rand_number<mr) {
- 					w[i][k] += Core::Random::Normal(0,1)/5.0f; //!!!!!!!!!
- 					if(w[i][k] > 1) {
- 						w[i][k] = 1;
- 					}
- 					if(w[i][k] <-1) {
- 						w[i][k] = -1;
- 					}
+ 					w[i][k] += Core::Random::Normal(0,1);///5.0f;///5.0f; //!!!!!!!!!
+ 					// if(w[i][k] > 1) {
+ 					// 	w[i][k] = 1;
+ 					// }
+ 					// if(w[i][k] <-1) {
+ 					// 	w[i][k] = -1;
+ 					// }
  				}
  			}
  		}
@@ -105,9 +113,9 @@ void FFNeuralNetwork::mutate(float mr) {
 //                 std::cout << forwarded[i] << " ";
 //         }
 //         std::cout << "\nafter: ";
-//         for (int i = 0; i < forwarded.size(); i++) {
-//                 forwarded[i] = 1.0f / (1.0f + exp(-forwarded[i]));
-//         }
+        // for (int i = 0; i < forwarded.size(); i++) {
+        //         forwarded[i] = 1.0f / (1.0f + exp(-forwarded[i]));
+        // }
 //         for (int i = 0; i < forwarded.size(); i++) {
 //                 std::cout << forwarded[i] << " ";
 //         }

@@ -1,7 +1,7 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), _brain(3, 4, 4, 2), _ai_controlled(false), _is_dead(false),
+    : EntityModel(std::move(camera), position, view_size), _brain(3, 4, 3, 2), _ai_controlled(false), _is_dead(false),
       _reached_finish(false), _total_distance_traveled(0), _total_time(0), _fitness(0)
 {
         _direction = {0, 1};
@@ -31,7 +31,7 @@ void Core::Car::update(double t, float dt)
                 vector<float> raycast_lengths;
                 for (auto& raycast : _raycasts) {
                         raycast_lengths.push_back(
-                            (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()));
+                            (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()*450.0f));
                 }
                 vector<float> neural_outputs = _brain(raycast_lengths);
 
@@ -45,11 +45,13 @@ void Core::Car::update(double t, float dt)
                 //        }
 
 //                std::cout << neural_outputs[0] << std::endl;
-
-                _input_map->up = neural_outputs[0];
-                _input_map->down = neural_outputs[1];
+                _input_map->up = 1.0;
+                _input_map->down = neural_outputs[0];
+                _input_map->right = neural_outputs[1];
                 _input_map->left = neural_outputs[2];
-                _input_map->right = neural_outputs[3];
+                // _input_map->down = neural_outputs[0];
+                // _input_map->left = neural_outputs[1];
+                // _input_map->right = neural_outputs[2];
 
 //                if (neural_outputs[0] > 0.666)
 //                        _input_map->right = 0.1;
@@ -60,6 +62,11 @@ void Core::Car::update(double t, float dt)
 
 //                _input_map->right = neural_outputs[2];
 //                _input_map->left = neural_outputs[3];
+        } else if (_ai_controlled) {
+            _input_map->up = 0;
+            _input_map->down = 0;
+            _input_map->right = 0;
+            _input_map->left = 0;
         }
 
         // clear
@@ -208,7 +215,7 @@ void Core::Car::setDead(bool is_dead)
 {
         _is_dead = is_dead;
         if (is_dead)
-                calculateFitness();
+                calculateFitness(false);
 }
 
 bool Core::Car::reachedFinish() const { return _reached_finish; }
@@ -217,17 +224,20 @@ void Core::Car::checkReachedFinish(unsigned int checkpoint_count)
         if (_checkpoint_ids.size() == checkpoint_count) {
                 _reached_finish = true;
                 _velocity.clear();
-                calculateFitness();
+                calculateFitness(false);
         }
 }
 
 float Core::Car::getTotalDistanceTraveled() const { return _total_distance_traveled; }
 float Core::Car::getTotalTime() const { return _total_time; }
 
-void Core::Car::calculateFitness()
+void Core::Car::calculateFitness(bool overtime)
 {
         if (_fitness == 0) {
                 _fitness = static_cast<float>(_total_checkpoint_count) - static_cast<float>(_checkpoint_ids.size()) + _total_time;
+                if (_is_dead) {
+                    //_fitness += 10*((30.0-_total_time)/30.0);
+                }
 
                 //                std::cout << "time: " << _total_time << std::endl;
                 //                std::cout << "checkpoints: " << _total_checkpoint_count << std::endl;

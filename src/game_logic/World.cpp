@@ -4,7 +4,7 @@ namespace Core {
 World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
              float y_max)
     : _entity_model_creator(std::move(entity_model_creator)), _camera(new Camera), _user_input_map(new InputMap),
-      _generation(0), _generation_time(0), _time_limit(60)
+      _generation(0), _generation_time(0), _time_limit(30)
 {
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
 
@@ -16,7 +16,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
 
         generateTestMap();
 
-        generateCars({2, 0}, {0, 1}, 20, "assets/car_presets/physics_preset_1.xml",
+        generateCars({2, 0}, {0, 1}, 12, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
 
         generateGroundTiles(2);
@@ -57,7 +57,7 @@ void World::update(double t, float dt)
         // time limit
         if (_generation_time > _time_limit) {
                 for (auto& car : _cars) {
-                        car->calculateFitness();
+                        car->calculateFitness(true);
                 }
                 all_cars_dead_or_finished = true;
                 std::cout << "Time Out!" << std::endl;
@@ -67,7 +67,7 @@ void World::update(double t, float dt)
                 //config
                 int nBest = 2;
                 int nPopulation = static_cast<int>(_cars.size());
-                float mr = 0.7;
+                float mr = 0.8;
 
                 //data
                 vector<Car*> bestCars(nBest,nullptr);
@@ -95,7 +95,8 @@ void World::update(double t, float dt)
                 }
                 for (int i = 0; i < 2; i++) {
                         Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-                        carP->getBrain().mutate(mr);
+                        _cars[nPopulation-i-1]->getBrain() = carP->getBrain();
+                        _cars[nPopulation-i-1]->getBrain().mutate(mr);
                 }
 
                 // reset

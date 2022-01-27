@@ -66,7 +66,7 @@ public:
         float getTotalDistanceTraveled() const;
         float getTotalTime() const;
 
-        void calculateFitness();
+        void calculateFitness(bool overtime);
         float getFitness() const;
 
         FFNeuralNetwork& getBrain();
