@@ -17,8 +17,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         //        generateMapFromImage("assets/maps/Untitled3.png", 5);
         loadMap("assets/maps/world_.save");
 #else
-        //                loadMap("assets/maps/world.save");
-        generateTestMap();
+        loadMap("assets/maps/world_.save");
+//        generateTestMap();
 #endif
         // spawn the player
         if (CoreConstants::generate_player) {
@@ -28,8 +28,10 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                 _player->setCameraFocus(true);
         }
 
-        // spawn the cars
-        generateCars(_spawn_location, _spawn_direction.normalized(), 2, "assets/car_presets/physics_preset_1.xml",
+        _populationCars = 11; //MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        _mutationRate = 60;
+
+        generateCars(_spawn_location, _spawn_direction.normalized(), _populationCars, "assets/car_presets/physics_preset_1.xml",
                      "assets/car_presets/sprite_preset_1.xml");
 
         generateGroundTiles(3);
@@ -299,7 +301,7 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
         }
 }
 #else
-void World::initializeWalls(const std::string& inputname, float scale)
+void World::generateMapFromImage(const std::string& inputname, float scale)
 {
         std::cerr << "Couldn't initialize walls." << std::endl;
 }
@@ -677,6 +679,7 @@ void World::generateTestMap()
 
 void World::updateAI(double t, float dt)
 {
+        // AI
         _generation_time += dt;
         bool all_cars_dead_or_finished = true;
         for (auto& car : _cars) {
@@ -695,49 +698,58 @@ void World::updateAI(double t, float dt)
         }
 
         if (all_cars_dead_or_finished) {
-                // config
-                int nBest = 2;
-                int nPopulation = static_cast<int>(_cars.size());
-                float mr = 0.8;
-
-                // data
-                vector<Car*> bestCars(nBest, nullptr);
 
                 _generation++;
                 std::cout << "Generation " << _generation << std::endl;
+                std::shared_ptr<Car> aux = _cars[_populationCars-1];
+                _cars.pop_back();
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
 
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
-                        return lhs->getFitness() < rhs->getFitness();
-                });
-                for (int i = 0; i < nBest; i++) {
-                        bestCars[i] = _cars[i].get();
+                for (int i = 2; i < _populationCars-1; i += 2) {
+                        _cars[i]->getBrain().uniformCrossOverWeights(_cars[0]->getBrain(),_cars[1]->getBrain(),_cars[i+1]->getBrain());
+                        _cars[i]->getBrain().uniformCrossOverBiases(_cars[0]->getBrain(),_cars[1]->getBrain(),_cars[i+1]->getBrain());
                 }
-                for (int i = nBest; i < nPopulation - 2; i++) {
-                        Car* carParrent1 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
-                        Car* carParrent2 = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
 
-                        if (Random::uniformReal(0, 1) > 0.5f) {
-                                Car* temp = carParrent1;
-                                carParrent1 = carParrent2;
-                                carParrent2 = temp;
+                for (int i = 2; i < _populationCars-1; i++) {
+                        for (int j = 0; j < _mutationRate; j++) {
+                                _cars[i]->getBrain().mutateOneWeightGene(aux->getBrain());
+                                aux->getBrain().mutateOneWeightGene(_cars[i]->getBrain());
+                                _cars[i]->getBrain().mutateOneBiasesGene(aux->getBrain());
+                                aux->getBrain().mutateOneBiasesGene(_cars[i]->getBrain());
                         }
+                }
 
-                        _cars[i]->getBrain() =
-                            carParrent1->getBrain().crossover(carParrent2->getBrain()); // check crossover
-                        _cars[i]->getBrain().mutate(mr);
-                }
-                for (int i = 0; i < 2; i++) {
-                        Car* carP = bestCars[floor(Random::uniformReal(0, 1) * ((float)bestCars.size()))];
-                        _cars[nPopulation - i - 1]->getBrain() = carP->getBrain();
-                        _cars[nPopulation - i - 1]->getBrain().mutate(mr);
-                }
+                _cars.push_back(aux);
+
+                // for (int i = nBest; i < _populationCars-2; i++) {
+                //         Car* carParrent1 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+                //         Car* carParrent2 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+
+                //         if (Random::uniformReal(0,1) > 0.5f) {
+                //                 Car* temp = carParrent1;
+                //                 carParrent1 = carParrent2;
+                //                 carParrent2 = temp;
+                //         }
+
+                //         _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check crossover
+                //         _cars[i]->getBrain().mutate(mr);
+
+                // }
+                // for (int i = 0; i < 2; i++) {
+                //         Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
+                //         _cars[nPopulation-i-1]->getBrain() = carP->getBrain();
+                //         _cars[nPopulation-i-1]->getBrain().mutate(mr);
+                // }
 
                 // reset
                 for (auto& car : _cars) {
-                        car->reset(_spawn_location, _spawn_direction);
+                        car->reset({2, 0}, {0, 1});
                 }
                 _generation_time = 0;
+
+                // neural network mutation
         }
+
 }
 
 void World::updateCamera(double t, float dt)

@@ -47,6 +47,8 @@ private:
         unsigned int _generation;
         float _generation_time;
         float _time_limit;
+        int _populationCars;
+        int _mutationRate;
 
 public:
         World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,

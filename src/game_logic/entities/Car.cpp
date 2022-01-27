@@ -1,7 +1,7 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), _brain(3, 4, 3, 2), _ai_controlled(false), _is_dead(false),
+    : EntityModel(std::move(camera), position, view_size), _brain({5,6,3}), _ai_controlled(false), _is_dead(false),
       _reached_finish(false), _total_distance_traveled(0), _total_time(0), _fitness(0)
 {
         _direction = {0, 1};
@@ -31,12 +31,12 @@ void Core::Car::update(double t, float dt)
                 vector<float> raycast_lengths;
                 for (auto& raycast : _raycasts) {
                         raycast_lengths.push_back(
-                            (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()*450.0f));
+                            (raycast->isActivated() ? raycast->getCollisionLength() : raycast->getLength()*180.0f));
                 }
                 vector<float> neural_outputs = _brain(raycast_lengths);
 
                 _input_map->up = 1.0;
-                _input_map->down = neural_outputs[0];
+                _input_map->down = neural_outputs[0]/2.0f;
                 _input_map->right = neural_outputs[1];
                 _input_map->left = neural_outputs[2];
 
