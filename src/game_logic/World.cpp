@@ -17,8 +17,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         generateMapFromImage("assets/maps/Untitled3.png", 5);
 //        loadMap("assets/maps/world_.save");
 #else
-        loadMap("assets/maps/world_.save");
-//        generateTestMap();
+//        loadMap("assets/maps/world_.save");
+        generateTestMap();
 #endif
         // spawn the player
         if (CoreConstants::generate_player) {
@@ -29,8 +29,8 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                 _player->setCameraFocus(true);
         }
 
-        _populationCars = 25; // MOET onEVEN ZIJN!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        _mutationRate = 60;
+        _populationCars = 20;
+        _mutationRate = 0.8;
         std::cout << "Generating " << _populationCars << " Cars ..." << std::endl;
         generateCars(_spawn_location, _spawn_direction.normalized(), _populationCars,
                      "assets/car_presets/physics_preset_1.xml", "assets/car_presets/sprite_preset_1.xml");
@@ -77,6 +77,10 @@ std::shared_ptr<Camera> World::getCamera() { return _camera; }
 
 void World::saveMap(const std::string& filepath) const
 {
+        if (_walls.size() > 200) {
+                std::cout << "Too many walls to save!" << std::endl;
+                return;
+        }
         ofstream myfile{filepath};
 
         // start
@@ -713,49 +717,12 @@ void World::updateAI(double t, float dt)
 
                 _generation++;
                 std::cout << "Generation " << _generation << std::endl;
-                std::shared_ptr<Car> aux = _cars[_populationCars - 1];
-                _cars.pop_back();
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
-                        return lhs->getFitness() < rhs->getFitness();
-                });
 
-                for (int i = 2; i < _populationCars - 1; i += 2) {
-                        _cars[i]->getBrain().uniformCrossOverWeights(_cars[0]->getBrain(), _cars[1]->getBrain(),
-                                                                     _cars[i + 1]->getBrain());
-                        _cars[i]->getBrain().uniformCrossOverBiases(_cars[0]->getBrain(), _cars[1]->getBrain(),
-                                                                    _cars[i + 1]->getBrain());
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
+                for (int i = 2; i < _populationCars; i++) {
+                        _cars[i]->getBrain() = _cars[0]->getBrain().crossover(_cars[1]->getBrain()); //check crossover
+                        _cars[i]->getBrain().mutate(_mutationRate);
                 }
-
-                for (int i = 2; i < _populationCars - 1; i++) {
-                        for (int j = 0; j < _mutationRate; j++) {
-                                _cars[i]->getBrain().mutateOneWeightGene(aux->getBrain());
-                                aux->getBrain().mutateOneWeightGene(_cars[i]->getBrain());
-                                _cars[i]->getBrain().mutateOneBiasesGene(aux->getBrain());
-                                aux->getBrain().mutateOneBiasesGene(_cars[i]->getBrain());
-                        }
-                }
-
-                _cars.push_back(aux);
-
-                // for (int i = nBest; i < _populationCars-2; i++) {
-                //         Car* carParrent1 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-                //         Car* carParrent2 = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-
-                //         if (Random::uniformReal(0,1) > 0.5f) {
-                //                 Car* temp = carParrent1;
-                //                 carParrent1 = carParrent2;
-                //                 carParrent2 = temp;
-                //         }
-
-                //         _cars[i]->getBrain() = carParrent1->getBrain().crossover(carParrent2->getBrain()); //check
-                //         crossover _cars[i]->getBrain().mutate(mr);
-
-                // }
-                // for (int i = 0; i < 2; i++) {
-                //         Car* carP = bestCars[floor(Random::uniformReal(0,1)*((float) bestCars.size()))];
-                //         _cars[nPopulation-i-1]->getBrain() = carP->getBrain();
-                //         _cars[nPopulation-i-1]->getBrain().mutate(mr);
-                // }
 
                 // reset
                 for (auto& car : _cars) {
