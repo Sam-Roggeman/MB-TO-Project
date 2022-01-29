@@ -1,8 +1,8 @@
 #include "Car.h"
 
 Core::Car::Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size)
-    : EntityModel(std::move(camera), position, view_size), _brain(5,4,3,2), _ai_controlled(false), _is_dead(false),
-      _reached_finish(false), _total_distance_traveled(0), _total_time(0), _fitness(0)
+    : EntityModel(std::move(camera), position, view_size), _brain(5, 4, 3, 2), _ai_controlled(false), _is_dead(false),
+      _reached_finish(false), _total_distance_traveled(0), _time_since_checkpoint(0), _fitness(0)
 {
         _direction = {0, 1};
         _mass = 1500;
@@ -36,16 +36,15 @@ void Core::Car::update(double t, float dt)
                 vector<float> neural_outputs = _brain(raycast_lengths);
 
                 _input_map->up = 1.0;
-                _input_map->down = neural_outputs[0]/10.0f;
+                _input_map->down = neural_outputs[0];
                 _input_map->right = neural_outputs[1];
                 _input_map->left = neural_outputs[2];
 
-
         } else if (_ai_controlled) {
-            _input_map->up = 0;
-            _input_map->down = 0;
-            _input_map->right = 0;
-            _input_map->left = 0;
+                _input_map->up = 0;
+                _input_map->down = 0;
+                _input_map->right = 0;
+                _input_map->left = 0;
         }
 
         // clear
@@ -100,9 +99,17 @@ void Core::Car::update(double t, float dt)
 
         // raycasts
         resetRaycasts();
+        if (hit_checkpoint) {
+                _time_since_checkpoint = dt;
+                hit_checkpoint = false;
+        } else {
+                // add time
+                _time_since_checkpoint += dt;
+        }
 
-        // add time
-        _total_time += dt;
+        if (!_reached_finish) {
+                _total_time += dt;
+        }
 
         Vector2f old_position;
 
@@ -123,7 +130,14 @@ void Core::Car::onHit()
         _velocity.clear();
 }
 
-void Core::Car::onHitCheckpoint(unsigned int checkpoint_id) { _checkpoint_ids.insert(checkpoint_id); }
+void Core::Car::onHitCheckpoint(unsigned int checkpoint_id)
+{
+        unsigned int s1 = _checkpoint_ids.size();
+        _checkpoint_ids.insert(checkpoint_id);
+        if (_checkpoint_ids.size() > s1) {
+                hit_checkpoint = true;
+        }
+}
 
 void Core::Car::reset(const Vector2f& position, const Vector2f& direction)
 {
@@ -140,8 +154,9 @@ void Core::Car::reset(const Vector2f& position, const Vector2f& direction)
         _checkpoint_ids.clear();
 
         _total_distance_traveled = 0;
-        _total_time = 0;
+        _time_since_checkpoint = 0;
         _fitness = 0;
+        _total_time = 0;
 }
 
 void Core::Car::steer(float angle_radian, float direction_sign, float dt)
@@ -207,14 +222,19 @@ void Core::Car::checkReachedFinish(unsigned int checkpoint_count)
 }
 
 float Core::Car::getTotalDistanceTraveled() const { return _total_distance_traveled; }
-float Core::Car::getTotalTime() const { return _total_time; }
+float Core::Car::getTotalTime() const { return _time_since_checkpoint; }
 
 void Core::Car::calculateFitness(bool overtime)
 {
         if (_fitness == 0) {
-                _fitness = static_cast<float>(_total_checkpoint_count) - static_cast<float>(_checkpoint_ids.size()) + _total_time;
-                if (_is_dead) {
-                    //_fitness += 10*((30.0-_total_time)/30.0);
+                _fitness =
+                    100 * (static_cast<float>(_total_checkpoint_count) - static_cast<float>(_checkpoint_ids.size())) +
+                    10.0f * _total_time; //+std::min(10.0f, _time_since_checkpoint);
+                if (!_reached_finish) {
+                        _fitness += 1000;
+                        _fitness += 10.0f * generation;
+
+                        //_fitness += 10*((30.0-_total_time)/30.0);
                 }
 
                 //                std::cout << "time: " << _total_time << std::endl;
@@ -227,7 +247,11 @@ void Core::Car::calculateFitness(bool overtime)
 float Core::Car::getFitness() const { return _fitness; }
 
 FFNeuralNetwork& Core::Car::getBrain() { return _brain; }
-
+void Core::Car::setBrain(FFNeuralNetwork brain)
+{
+        generation = 0;
+        _brain = brain;
+}
 void Core::Car::setCheckpointCount(unsigned int count) { _total_checkpoint_count = count; }
 
 float Core::Car::getAccelerationPower() const { return _acceleration_power; }
@@ -259,3 +283,4 @@ void Core::Car::setMinTraction(float value) { _min_traction = value; }
 
 float Core::Car::getMaxTraction() const { return _max_traction; }
 void Core::Car::setMaxTraction(float value) { _max_traction = value; }
+void Core::Car::survived() { generation++; }

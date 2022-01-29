@@ -33,12 +33,19 @@ private:
         bool _reached_finish;
         bool _is_dead;
         float _total_distance_traveled;
-        float _total_time;
+        float _time_since_checkpoint;
         std::set<unsigned int> _checkpoint_ids;
         unsigned int _total_checkpoint_count;
         float _fitness;
+        bool hit_checkpoint = false;
+        float _total_time = 0.0f;
+        unsigned int generation = 0;
+
+        unsigned int id;
 
 public:
+        void survived();
+
         Car(std::shared_ptr<Core::Camera> camera, const Core::Vector2f& position, const Core::Vector2f& view_size);
         ~Car() = default;
 
@@ -102,6 +109,7 @@ public:
 
         float getMaxTraction() const;
         void setMaxTraction(float value);
+        void setBrain(FFNeuralNetwork brain);
 };
 } // namespace Core
 

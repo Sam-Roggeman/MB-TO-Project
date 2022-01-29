@@ -16,4 +16,4 @@ const Core::Vector2f CoreConstants::spawn_location = {2, 0};
 const Core::Vector2f CoreConstants::spawn_direction = {0, 1};
 
 const float CoreConstants::time_limit = 30;
-const bool CoreConstants::loadAI = false;
+const bool CoreConstants::loadAI = true;

@@ -12,12 +12,12 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         _camera->setRepresentationBounderies(x_min, x_max, y_min, y_max);
         std::cout << "Loading The Map ..." << std::endl;
         // load the map
-        generateGroundTiles(5);
+        generateGroundTiles(2);
 #ifdef WIN32
-        generateMapFromImage("assets/maps/Untitled3.png", 5);
+        generateMapFromImage("assets/maps/Video_Example2.png", 2);
 //        loadMap("assets/maps/world_.save");
 #else
-//        loadMap("assets/maps/world_.save");
+        //        loadMap("assets/maps/world_.save");
         generateTestMap();
 #endif
         // spawn the player
@@ -29,22 +29,24 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
                 _player->setCameraFocus(true);
         }
 
-        _populationCars = 20;
-        _mutationRate = 0.8;
+        _populationCars = 50;
+        _mutationRate = 0.5;
         std::cout << "Generating " << _populationCars << " Cars ..." << std::endl;
         generateCars(_spawn_location, _spawn_direction.normalized(), _populationCars,
                      "assets/car_presets/physics_preset_1.xml", "assets/car_presets/sprite_preset_1.xml");
 
         if (CoreConstants::loadAI) {
                 if (_populationCars > 1) {
-                        _cars[0]->getBrain() = FFNeuralNetwork("assets/neuralNetID0");
-                        _cars[1]->getBrain() = FFNeuralNetwork("assets/neuralNetID1");
+                        _cars[0]->setBrain(FFNeuralNetwork("assets/neuralNetID0"));
+                        _cars[1]->setBrain(FFNeuralNetwork("assets/neuralNetID1"));
                 }
         }
 }
 World::~World()
 {
-        saveMap("assets/maps/world_last_run.save");
+        std::cout << "Saving The Map To world_last_run.save ..." << std::endl;
+        saveMap("assets/maps/world_last_run.save ... ");
+        std::cout << "Saving The Brains" << std::endl;
         _cars[0]->getBrain().exportWeights();
         _cars[1]->getBrain().exportWeights();
         std::cout << "Destructing The World ... " << std::endl;
@@ -229,11 +231,11 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
 {
         imageProcessor imageProcessor{inputname};
         {
-                unsigned int x_diff = std::max(imageProcessor.getColumns() / 500, 1u);
+                unsigned int x_diff = std::max(imageProcessor.getColumns() / 200, 1u);
                 unsigned int y_diff = std::max(imageProcessor.getRows() / 20, 1u);
                 unsigned int wallpixels{};
                 Core::Vector2f wall_pos{}, wall_size{};
-                unsigned threshold = (unsigned int)((float)x_diff * (float)y_diff) / 10;
+                unsigned threshold = (unsigned int)((float)x_diff * (float)y_diff) / 100;
 
                 // generate walls
                 for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - y_diff; base_row += y_diff) {
@@ -337,19 +339,7 @@ void World::meltRows()
         float lower_middle_border{}, higher_middle_border{}, highest_border{}, lowest_border{};
 
         for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
-                //                wall1_it = std::next(_walls.begin(),wall1_ind);
-                //                std::cout << "wall1 index: " << wall1_ind
-                //                <<"\n\tcenter:\t\t"<<wall1_it->get()->getPosition()<<
-                //                "\n\tviewsize:\t"<<wall1_it->get()->getAbsoluteViewSize() << "\n"; std::cout << "right
-                //                border: " <<
-                //                wall1_it->get()->getPosition().x+wall1_it->get()->getAbsoluteViewSize().x/2 << "\nleft
-                //                border: " <<
-                //                wall1_it->get()->getPosition().x-wall1_it->get()->getAbsoluteViewSize().x/2 << "\n";
                 for (unsigned int wall2_ind = wall1_ind + 1; wall2_ind < _walls.size(); wall2_ind++) {
-                        //                        wall2_it = std::next(_walls.begin(),wall2_ind);
-                        //                        std::cout << "wall2 index: " << wall2_ind
-                        //                        <<"\n\tcenter:\t\t"<<wall2_it->get()->getPosition()<<
-                        //                        "\n\tviewsize:\t"<<wall2_it->get()->getAbsoluteViewSize() << "\n";
                         wall1_ptr = *std::next(_walls.begin(), wall1_ind);
                         wall2_ptr = *std::next(_walls.begin(), wall2_ind);
 
@@ -362,20 +352,8 @@ void World::meltRows()
                         higher_middle_border =
                             std::max(wall1_ptr->getPosition().y - wall1_ptr->getAbsoluteViewSize().y / 2.0f,
                                      wall2_ptr->getPosition().y - wall2_ptr->getAbsoluteViewSize().y / 2.0f);
-                        //                        if (wall2_ind == 8){
-                        //                                std::cout << "";
-                        //                        }
-                        //                        std::cout << "right border: " <<
-                        //                        wall2_ptr->getPosition().x+wall2_ptr->getAbsoluteViewSize().x/2 <<
-                        //                        "\nleft border: " <<
-                        //                        wall2_ptr->getPosition().x-wall2_ptr->getAbsoluteViewSize().x/2 <<
-                        //                        "\n";
                         // check for row
-                        if (std::abs(diff.x) < 0.00001f &&
-                            std::abs(lower_middle_border - higher_middle_border) < 0.00001f) {
-                                //                                std::cout << "\t\t\tmerged: " << wall1_ind << " and "
-                                //                                <<wall2_ind<<"\n";
-
+                        if (std::abs(diff.x) < 0.01f && std::abs(lower_middle_border - higher_middle_border) < 0.01f) {
                                 lowest_border =
                                     std::min(wall1_ptr->getPosition().y - wall1_ptr->getAbsoluteViewSize().y / 2.0f,
                                              wall2_ptr->getPosition().y - wall2_ptr->getAbsoluteViewSize().y / 2.0f);
@@ -389,14 +367,8 @@ void World::meltRows()
                                     {wall1_ptr->getPosition().x, (lowest_border + highest_border) / 2.0f});
                                 _walls.erase(std::find(_walls.begin(), _walls.end(), wall2_ptr));
                                 melted_wall = true;
-                                //                                std::cout << std::endl;
                         }
-                        // check for column
-                        //                        if (){
-                        //                                melted_wall = true;
-                        //                        }
                 }
-                //                std::cout << std::endl;
         }
         if (melted_wall)
                 meltRows();
@@ -409,19 +381,7 @@ void World::meltColumns()
         float lower_middle_border{}, higher_middle_border{}, highest_border{}, lowest_border{};
 
         for (unsigned int wall1_ind = 0; wall1_ind < _walls.size() - 1; wall1_ind++) {
-                //                wall1_it = std::next(_walls.begin(),wall1_ind);
-                //                std::cout << "wall1 index: " << wall1_ind
-                //                <<"\n\tcenter:\t\t"<<wall1_it->get()->getPosition()<<
-                //                "\n\tviewsize:\t"<<wall1_it->get()->getAbsoluteViewSize() << "\n"; std::cout << "right
-                //                border: " <<
-                //                wall1_it->get()->getPosition().x+wall1_it->get()->getAbsoluteViewSize().x/2 << "\nleft
-                //                border: " <<
-                //                wall1_it->get()->getPosition().x-wall1_it->get()->getAbsoluteViewSize().x/2 << "\n";
                 for (unsigned int wall2_ind = wall1_ind + 1; wall2_ind < _walls.size(); wall2_ind++) {
-                        //                        wall2_it = std::next(_walls.begin(),wall2_ind);
-                        //                        std::cout << "wall2 index: " << wall2_ind
-                        //                        <<"\n\tcenter:\t\t"<<wall2_it->get()->getPosition()<<
-                        //                        "\n\tviewsize:\t"<<wall2_it->get()->getAbsoluteViewSize() << "\n";
                         wall1_ptr = *std::next(_walls.begin(), wall1_ind);
                         wall2_ptr = *std::next(_walls.begin(), wall2_ind);
 
@@ -434,20 +394,9 @@ void World::meltColumns()
                         higher_middle_border =
                             std::max(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
                                      wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
-                        //                        if (wall2_ind == 8){
-                        //                                std::cout << "";
-                        //                        }
-                        //                        std::cout << "right border: " <<
-                        //                        wall2_ptr->getPosition().x+wall2_ptr->getAbsoluteViewSize().x/2 <<
-                        //                        "\nleft border: " <<
-                        //                        wall2_ptr->getPosition().x-wall2_ptr->getAbsoluteViewSize().x/2 <<
-                        //                        "\n";
                         // check for row
                         if (std::abs(diff.y) < 0.0001f &&
                             std::abs(lower_middle_border - higher_middle_border) < 0.0001f) {
-                                //                                std::cout << "\t\t\tmerged: " << wall1_ind << " and "
-                                //                                <<wall2_ind<<"\n";
-
                                 lowest_border =
                                     std::min(wall1_ptr->getPosition().x - wall1_ptr->getAbsoluteViewSize().x / 2.0f,
                                              wall2_ptr->getPosition().x - wall2_ptr->getAbsoluteViewSize().x / 2.0f);
@@ -461,14 +410,8 @@ void World::meltColumns()
                                     {(lowest_border + highest_border) / 2.0f, wall1_ptr->getPosition().y});
                                 _walls.erase(std::find(_walls.begin(), _walls.end(), wall2_ptr));
                                 melted_wall = true;
-                                //                                std::cout << std::endl;
                         }
-                        // check for column
-                        //                        if (){
-                        //                                melted_wall = true;
-                        //                        }
                 }
-                //                std::cout << std::endl;
         }
         if (melted_wall)
                 meltColumns();
@@ -496,7 +439,16 @@ void World::generateSquareWallEnclosure(const Vector2f& origin, float size, floa
 void World::generateCars(const Vector2f& position, const Vector2f& direction, unsigned int amount,
                          const std::string& physics_preset, const std::string& sprite_preset)
 {
-        for (unsigned int i = 0; i < amount; i++) {
+        for (unsigned int i = 0; i < 2; i++) {
+                std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
+                    _camera, position, {0.2, 0.2}, physics_preset, "assets/car_presets/sprite_preset_3.xml");
+                new_car->reset(position, direction);
+                new_car->setAIControlled(true);
+                new_car->setCheckpointCount(_checkpoints.size());
+                _cars.push_back(new_car);
+        }
+
+        for (unsigned int i = 2; i < amount; i++) {
                 if (physics_preset.empty() && sprite_preset.empty()) {
                         std::shared_ptr<Core::Car> new_car = _entity_model_creator->createCarModel(
                             _camera, position, {0.2, 0.2}, physics_preset, sprite_preset);
@@ -513,7 +465,7 @@ void World::generateCars(const Vector2f& position, const Vector2f& direction, un
                         _cars.push_back(new_car);
                 }
         }
-}
+};
 
 void World::generateTestMap()
 {
@@ -697,31 +649,58 @@ void World::updateAI(double t, float dt)
 {
         // AI
         _generation_time += dt;
-        bool all_cars_dead_or_finished = true;
+        unsigned int cars_finished = 0;
+        bool all_cars_dead = true;
+
         for (auto& car : _cars) {
-                if (!(car->isDead() || car->reachedFinish())) {
-                        all_cars_dead_or_finished = false;
+                if (car->reachedFinish()) {
+                        cars_finished++;
+
+                } else if (!(car->isDead())) {
+                        all_cars_dead = false;
                 }
         }
 
         // time limit
         if (_generation_time > _time_limit) {
-                for (auto& car : _cars) {
-                        car->calculateFitness(true);
-                }
-                all_cars_dead_or_finished = true;
+                all_cars_dead = true;
                 std::cout << "Time Out!" << std::endl;
         }
 
-        if (all_cars_dead_or_finished) {
-
+        if (all_cars_dead || cars_finished >= 2) {
+                for (auto& car : _cars) {
+                        car->calculateFitness(true);
+                }
                 _generation++;
+                _time_limit = std::min(_time_limit + 1.0f, 20.0f);
                 std::cout << "Generation " << _generation << std::endl;
-
-                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs ){return lhs->getFitness() < rhs->getFitness();});
+                sort(_cars.begin(), _cars.end(), [](const std::shared_ptr<Car>& lhs, const std::shared_ptr<Car>& rhs) {
+                        return lhs->getFitness() < rhs->getFitness();
+                });
+                _cars.at(0)->survived();
+                _cars.at(1)->survived();
                 for (int i = 2; i < _populationCars; i++) {
-                        _cars[i]->getBrain() = _cars[0]->getBrain().crossover(_cars[1]->getBrain()); //check crossover
-                        _cars[i]->getBrain().mutate(_mutationRate);
+                        switch (i % 4) {
+                        case 0:
+                                _cars[i]->setBrain(
+                                    _cars[0]->getBrain().crossover(_cars[1]->getBrain())); // check crossover
+                                _cars[i]->getBrain().mutate(_mutationRate);
+                                break;
+                        case 1:
+                                _cars[i]->setBrain(_cars[0]->getBrain());
+                                _cars[i]->getBrain().mutate(_mutationRate);
+                                break;
+                        case 2:
+                                _cars[i]->setBrain(_cars[1]->getBrain());
+                                _cars[i]->getBrain().mutate(_mutationRate);
+                                break;
+                        case 3:
+                                _cars[i]->setBrain(
+                                    _cars[0]->getBrain().crossover(_cars[1]->getBrain())); // check crossover
+                                _cars[i]->getBrain().mutate(_mutationRate);
+
+                                break;
+                        }
                 }
 
                 // reset
@@ -805,18 +784,18 @@ void World::controlPlayer(double t, float dt)
 void World::controlGameSpeed(double t, float dt)
 {
         // game speed
-        if (_user_input_map->z) {
-                Stopwatch::getInstance().setPhysicsSpeed(1);
-        }
-        if (_user_input_map->x) {
-                Stopwatch::getInstance().setPhysicsSpeed(2);
-        }
-        if (_user_input_map->c) {
-                Stopwatch::getInstance().setPhysicsSpeed(4);
-        }
-        if (_user_input_map->v) {
-                Stopwatch::getInstance().setPhysicsSpeed(10);
-        }
+        //        if (_user_input_map->z) {
+        //                Stopwatch::getInstance().setPhysicsSpeed(std::min(1.0f,Stopwatch::getInstance().getPhysicsSpeed()-0.1f));
+        //        }
+        //        if (_user_input_map->x) {
+        //                Stopwatch::getInstance().setPhysicsSpeed(Stopwatch::getInstance().getPhysicsSpeed()+1.0f);
+        //        }
+        //        if (_user_input_map->c) {
+        //                Stopwatch::getInstance().setPhysicsSpeed(4);
+        //        }
+        //        if (_user_input_map->v) {
+        //                Stopwatch::getInstance().setPhysicsSpeed(10);
+        //        }
 }
 
 void World::updateEntities(double t, float dt)
@@ -864,23 +843,25 @@ void World::checkCollisions(double t, float dt)
                         for (auto& raycast : car->getRaycasts()) {
                                 checkCollision(raycast, wall);
                         }
+                }
+        }
+        for (auto& car : _cars) {
 
-                        // checkpoints
-                        for (auto& checkpoint : _checkpoints) {
-                                std::shared_ptr<Raycast> raycast = checkpoint->getRaycast(0);
-                                if (checkCollision(raycast, car)) {
-                                        car->onHitCheckpoint(checkpoint->getID());
-                                        raycast->clear();
-                                }
+                // checkpoints
+                for (auto& checkpoint : _checkpoints) {
+                        std::shared_ptr<Raycast> raycast = checkpoint->getRaycast(0);
+                        if (checkCollision(raycast, car)) {
+                                car->onHitCheckpoint(checkpoint->getID());
+                                raycast->clear();
                         }
+                }
 
-                        // finish line
-                        if (_finish_line) {
-                                std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
-                                if (checkCollision(raycast, car)) {
-                                        car->checkReachedFinish(_checkpoints.size());
-                                        raycast->clear();
-                                }
+                // finish line
+                if (_finish_line) {
+                        std::shared_ptr<Raycast> raycast = _finish_line->getRaycast(0);
+                        if (checkCollision(raycast, car)) {
+                                car->checkReachedFinish(_checkpoints.size());
+                                raycast->clear();
                         }
                 }
         }

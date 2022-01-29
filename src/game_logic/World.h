@@ -15,6 +15,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <utility>
 
 namespace Core {
@@ -22,33 +23,33 @@ class World
 {
 private:
         // camera
-        std::shared_ptr<Camera> _camera;
-        bool move_camera;
-        Vector2f _middle_mouse_lock_pos;
-        Vector2f _previous_camera_pos;
-        bool _previous_focus_state;
+        std::shared_ptr<Camera> _camera{};
+        bool move_camera{};
+        Vector2f _middle_mouse_lock_pos{};
+        Vector2f _previous_camera_pos{};
+        bool _previous_focus_state{};
 
         // entities
-        std::shared_ptr<IEntityModelCreator> _entity_model_creator;
-        std::vector<std::shared_ptr<Car>> _cars;
-        std::vector<std::shared_ptr<Wall>> _walls;
-        std::vector<std::shared_ptr<Checkpoint>> _checkpoints;
-        std::shared_ptr<Checkpoint> _finish_line;
-        std::vector<std::shared_ptr<GroundTile>> _ground_tiles;
+        std::shared_ptr<IEntityModelCreator> _entity_model_creator{};
+        std::vector<std::shared_ptr<Car>> _cars{};
+        std::vector<std::shared_ptr<Wall>> _walls{};
+        std::vector<std::shared_ptr<Checkpoint>> _checkpoints{};
+        std::shared_ptr<Checkpoint> _finish_line{};
+        std::vector<std::shared_ptr<GroundTile>> _ground_tiles{};
 
         // player
-        std::shared_ptr<Car> _player;
-        std::shared_ptr<UserInputMap> _user_input_map;
+        std::shared_ptr<Car> _player{};
+        std::shared_ptr<UserInputMap> _user_input_map{};
 
         // AI
-        Vector2f _spawn_location;
-        Vector2f _spawn_direction;
-        unsigned int generation;
-        unsigned int _generation;
-        float _generation_time;
-        float _time_limit;
-        int _populationCars;
-        float _mutationRate;
+        Vector2f _spawn_location{};
+        Vector2f _spawn_direction{};
+        unsigned int generation{};
+        unsigned int _generation{};
+        float _generation_time{};
+        float _time_limit{};
+        int _populationCars{};
+        float _mutationRate{};
 
 public:
         World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_min, float x_max, float y_min,
@@ -122,6 +123,7 @@ private:
         static bool checkLinesegmentCircleIntersection(const Vector2f& l1p1, const Vector2f& l1p2, const Vector2f& cmp,
                                                        float cr, Vector2f& intersection1, Vector2f& intersection2,
                                                        bool& collided_twice);
+        void checkWallCollision(shared_ptr<Wall> wall);
 };
 } // namespace Core
 
