@@ -14,7 +14,7 @@ World::World(std::shared_ptr<IEntityModelCreator> entity_model_creator, float x_
         // load the map
         generateGroundTiles(2);
 #ifdef WIN32
-        generateMapFromImage("assets/maps/Video_Example2.png", 2);
+        generateMapFromImage("assets/maps/Video_Example1.png", 2);
 //        loadMap("assets/maps/world_.save");
 #else
         //        loadMap("assets/maps/world_.save");
@@ -231,11 +231,11 @@ void World::generateMapFromImage(const std::string& inputname, float scale)
 {
         imageProcessor imageProcessor{inputname};
         {
-                unsigned int x_diff = std::max(imageProcessor.getColumns() / 200, 1u);
+                unsigned int x_diff = std::max(imageProcessor.getColumns() / 100, 1u);
                 unsigned int y_diff = std::max(imageProcessor.getRows() / 20, 1u);
                 unsigned int wallpixels{};
                 Core::Vector2f wall_pos{}, wall_size{};
-                unsigned threshold = (unsigned int)((float)x_diff * (float)y_diff) / 100;
+                unsigned threshold = (unsigned int)((float)x_diff * (float)y_diff) / 10;
 
                 // generate walls
                 for (unsigned int base_row = 0; base_row < imageProcessor.getRows() - y_diff; base_row += y_diff) {
